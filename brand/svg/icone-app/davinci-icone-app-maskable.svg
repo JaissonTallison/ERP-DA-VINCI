@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-labelledby="t">
+<title id="t">daVINCI ERP Enterprise — ícone maskable (PWA, Android, iOS)</title>
+<defs><linearGradient id="gold" gradientUnits="userSpaceOnUse" x1="133.0" y1="27.5" x2="343.0" y2="237.5"><stop offset="0.00" stop-color="#F8DA8C"/><stop offset="0.33" stop-color="#D9A441"/><stop offset="0.67" stop-color="#F0C66A"/><stop offset="1.00" stop-color="#A8761E"/></linearGradient></defs>
+<rect x="0" y="0" width="512" height="512" rx="0" fill="#001228"/><g transform="translate(-80.55 68.63) scale(1.4141)"><g fill="none" stroke="url(#gold)" stroke-width="7"><circle cx="238" cy="132.5" r="102"/><rect x="150.0" y="58.5" width="176" height="176"/></g><g fill="#FFFFFF"><path d="M232.15 137.54Q232.15 115.7 224.16 105.49Q216.18 95.28 198.18 95.28H192.6V179.41Q199.83 180.02 205.71 180.02Q215.5 180.02 221.19 175.8Q226.87 171.58 229.51 162.58Q232.15 153.58 232.15 137.54ZM203.98 87Q231.17 87 244.16 99.31Q257.15 111.63 257.15 136.94Q257.15 162.92 244.72 175.61Q232.3 188.3 207.14 188.3L173.32 188H156V182.5L168.95 180.47V94.46L156 92.5V87Z"/><path d="M320 87V92.5L310.43 94.53L271.42 190.33H261.4L220.36 94.53L212.07 92.5V87H255.98V92.5L245.51 94.53L273.91 160.74L300.42 94.53L290.25 92.5V87Z"/></g></g>
+</svg>

@@ -19,6 +19,8 @@
 ├── contracts/                # Contratos versionados (OpenAPI, AsyncAPI) — a partir da Fase 2
 ├── infra/                    # Infraestrutura; hoje apenas o ambiente local
 │   └── local/                # Arquivos montados pelo compose.yaml
+├── brand/                    # Identidade visual: SVGs oficiais, PNGs e ícones por plataforma
+├── scripts/brand/            # Geradores da marca (pnpm brand:svg / brand:export)
 ├── docs/                     # Arquitetura, ADRs, padrões e guias
 ├── compose.yaml              # Ambiente local de desenvolvimento
 ├── settings.gradle.kts       # Raiz do build Java

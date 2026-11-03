@@ -1,9 +1,18 @@
+import Image from 'next/image';
+
 export default function HomePage() {
   return (
     <>
       <header className="bg-surface shadow-bar">
-        <div className="flex h-14 items-center px-4 sm:px-6">
-          <span className="text-lg font-bold text-brand">ERP-DA-VINCI</span>
+        <div className="flex h-18 items-center px-4 sm:px-6">
+          <Image
+            src="/brand/logo.svg"
+            alt="daVINCI ERP Enterprise"
+            width={160}
+            height={60}
+            priority
+            unoptimized
+          />
         </div>
       </header>
       <main className="px-4 py-6 sm:px-6">

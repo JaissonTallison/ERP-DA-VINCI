@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { IBM_Plex_Sans } from 'next/font/google';
 import './globals.css';
@@ -11,8 +11,13 @@ const plex = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'ERP-DA-VINCI',
+  title: { default: 'daVINCI ERP Enterprise', template: '%s · daVINCI ERP' },
   description: 'Plataforma ERP multissetorial',
+  applicationName: 'daVINCI ERP Enterprise',
+};
+
+export const viewport: Viewport = {
+  themeColor: '#001228',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

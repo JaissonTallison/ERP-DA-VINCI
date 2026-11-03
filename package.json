@@ -13,7 +13,9 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "brand:svg": "python3 scripts/brand/build_svgs.py",
+    "brand:export": "python3 scripts/brand/export_rasters.py"
   },
   "devDependencies": {
     "prettier": "3.9.10",

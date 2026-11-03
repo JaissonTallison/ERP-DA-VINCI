@@ -2,6 +2,10 @@
 
 Fonte dos tokens: `packages/design-tokens/src/tokens.css` (Tailwind v4 `@theme`). Mudar ali muda o sistema inteiro.
 
+## Marca
+
+Logos, símbolo e ícones por plataforma ficam em [`brand/`](../../brand/README.md) e são gerados por script. No app web, use os arquivos sincronizados em `apps/web/public/brand/`. No cabeçalho, a logo horizontal tem 160 px de largura (o mínimo do guia da marca), numa barra de 72 px.
+
 ## Princípios
 
 Visual de produto corporativo consolidado: sóbrio, denso na medida certa, sem enfeite. Quem usa o ERP oito horas por dia precisa de clareza, não de decoração.
@@ -37,3 +41,4 @@ Visual de produto corporativo consolidado: sóbrio, denso na medida certa, sem e
 ## Histórico
 
 - 2026-11-03 — Tokens iniciais e regras de lint criados na Fase 1.
+- 2026-11-03 — Marca daVINCI ERP Enterprise organizada em `brand/` e aplicada ao cabeçalho, favicon, manifesto PWA e Open Graph.
