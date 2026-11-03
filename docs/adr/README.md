@@ -22,5 +22,6 @@ Estados: **Proposto** (aguarda aprovação) · **Aceito** · **Substituído por 
 
 | [0014](0014-eventos-json-schema.md) | Eventos em JSON, validados por JSON Schema | Aceito |
 | [0015](0015-tenant-registry.md) | Desenho do Tenant Registry | Aceito |
+| [0016](0016-identidade-organizations-bff.md) | Identidade com Keycloak Organizations e login BFF | Aceito |
 
 Modelo: [template.md](template.md).

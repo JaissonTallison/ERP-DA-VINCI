@@ -7,3 +7,4 @@ Cada serviço aplica `id("davinci.spring-boot-service")` e é incluído explicit
 | Serviço | Plano | Porta local | Documentação |
 | --- | --- | --- | --- |
 | `tenant-registry` | Control Plane | 5630 | [docs/services/tenant-registry.md](../docs/services/tenant-registry.md) |
+| `identity` | Data Plane | 5631 | [docs/services/identity.md](../docs/services/identity.md) |

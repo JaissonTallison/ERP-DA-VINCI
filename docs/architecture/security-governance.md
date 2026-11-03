@@ -1,6 +1,6 @@
 # Segurança e governança
 
-> Estado: **diretrizes aprovadas**; implementação a partir da Fase 2 (Identity e Governance). Decisões em ADR-0009 e ADR-0012.
+> Estado: **diretrizes aprovadas**. Identidade implementada na Fase 2 (ADR-0016): Organizations, login BFF e MFA para administradores. RBAC/ABAC fino, SoD e auditoria vêm com o contexto Governance. Decisões em ADR-0009, ADR-0012 e ADR-0016.
 
 ## Identidade e acesso
 

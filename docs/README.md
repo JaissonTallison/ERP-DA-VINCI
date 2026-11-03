@@ -13,6 +13,7 @@
 ## Serviços
 
 - [Tenant Registry](services/tenant-registry.md)
+- [Identity](services/identity.md) — organizações no Keycloak e login do frontend
 
 ## Decisões
 

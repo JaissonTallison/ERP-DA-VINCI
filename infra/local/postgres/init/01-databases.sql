@@ -4,3 +4,6 @@ CREATE DATABASE keycloak;
 
 CREATE ROLE tenant_registry LOGIN PASSWORD 'tenant_registry_dev';
 CREATE DATABASE tenant_registry OWNER tenant_registry;
+
+CREATE ROLE identity LOGIN PASSWORD 'identity_dev';
+CREATE DATABASE identity OWNER identity;

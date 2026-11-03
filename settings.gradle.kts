@@ -27,3 +27,5 @@ project(":platform-kernel").projectDir = file("libs/java/platform-kernel")
 // Serviços de domínio: um por bounded context aprovado (docs/architecture/bounded-contexts.md).
 include(":tenant-registry")
 project(":tenant-registry").projectDir = file("services/tenant-registry")
+include(":identity")
+project(":identity").projectDir = file("services/identity")
