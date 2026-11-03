@@ -17,9 +17,14 @@ build/
 *.log
 hs_err_pid*
 
-# IDE
+# IDE (a extensão Java do VSCode compila em bin/ e gera metadados do Eclipse)
 .idea/
 *.iml
+bin/
+.project
+.classpath
+.settings/
+.factorypath
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
