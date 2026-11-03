@@ -90,7 +90,7 @@ services:
 
   clickhouse:
     <<: *defaults
-    image: clickhouse/clickhouse-server:26.8.36
+    image: clickhouse/clickhouse-server:26.10.3.7
     profiles: [analytics, full]
     environment:
       CLICKHOUSE_DB: analytics
