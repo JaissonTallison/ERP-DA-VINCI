@@ -1,0 +1,44 @@
+{
+  "realm": "platform",
+  "displayName": "ERP-DA-VINCI — operação da plataforma (local)",
+  "enabled": true,
+  "accessTokenLifespan": 300,
+  "sslRequired": "none",
+  "clientScopes": [
+    {
+      "name": "tenant-registry.read",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" }
+    },
+    {
+      "name": "tenant-registry.write",
+      "protocol": "openid-connect",
+      "attributes": { "include.in.token.scope": "true", "display.on.consent.screen": "false" }
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "platform-operator-cli",
+      "name": "Operação da plataforma (somente desenvolvimento)",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "platform_operator_dev_secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "defaultClientScopes": ["tenant-registry.read", "tenant-registry.write"],
+      "protocolMappers": [
+        {
+          "name": "audience-tenant-registry",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "tenant-registry",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ]
+}

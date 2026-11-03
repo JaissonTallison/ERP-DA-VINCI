@@ -1,0 +1,40 @@
+asyncapi: 3.0.0
+info:
+  title: Eventos do Tenant Registry
+  version: 1.0.0
+  description: |
+    Eventos de ciclo de vida de tenants publicados pelo Global Control Plane. Os Regional Data Planes
+    consomem para manter o cache local de roteamento tenant → célula (ADR-0003).
+
+    Garantias: entrega pelo menos uma vez (Transactional Outbox); ordem garantida por tenant
+    (chave da mensagem = tenantId). Consumidores deduplicam por `id` e descartam `data.version`
+    menor ou igual à já aplicada.
+defaultContentType: application/cloudevents+json
+channels:
+  tenantLifecycle:
+    address: tenant-registry.tenant.v1
+    description: Partição por tenantId.
+    messages:
+      tenantEvent:
+        $ref: '#/components/messages/tenantEvent'
+operations:
+  publishTenantLifecycle:
+    action: send
+    channel:
+      $ref: '#/channels/tenantLifecycle'
+components:
+  messages:
+    tenantEvent:
+      name: TenantEvent
+      title: Evento de ciclo de vida de tenant
+      contentType: application/cloudevents+json
+      payload:
+        schemaFormat: application/schema+json;version=draft-2020-12
+        schema:
+          $ref: './tenant-event.schema.json'
+      bindings:
+        kafka:
+          key:
+            type: string
+            format: uuid
+            description: tenantId

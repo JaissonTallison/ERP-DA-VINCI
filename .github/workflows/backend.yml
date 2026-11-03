@@ -6,6 +6,7 @@ on:
       - build-logic/**
       - libs/java/**
       - services/**
+      - contracts/**
       - gradle/**
       - gradlew
       - gradlew.bat

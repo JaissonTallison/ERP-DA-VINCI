@@ -1,0 +1,60 @@
+# Padrões para o ambiente local (compose.yaml, portas 5600–5699). Em outros ambientes, sobrescreva por variável.
+server:
+  port: ${PORT:5630}
+  shutdown: graceful
+
+spring:
+  application:
+    name: tenant-registry
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5600/tenant_registry}
+    username: ${DATABASE_USERNAME:tenant_registry}
+    password: ${DATABASE_PASSWORD:tenant_registry_dev}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:5602}
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OIDC_ISSUER_URI:http://localhost:5607/realms/platform}
+          audiences: tenant-registry
+
+tenant-registry:
+  outbox:
+    poll-interval: 500
+    batch-size: 100
+    send-timeout: 10s
+    retention: 7d
+    cleanup-cron: '0 15 3 * * *'
+    topic-partitions: 6
+    topic-replicas: ${KAFKA_TOPIC_REPLICAS:1}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, sbom
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING:1.0}
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:5610/v1/traces}
+  otlp:
+    metrics:
+      export:
+        url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:http://localhost:5610/v1/metrics}

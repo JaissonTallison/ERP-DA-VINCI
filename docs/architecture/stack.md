@@ -14,6 +14,8 @@
 | Flyway                                | 12.4             | Gerenciado pelo BOM; migrações por serviço                                                        |
 | JSpecify                              | 1.0.0            | Anotações de nulidade (padrão do Spring 7)                                                        |
 | Spotless + palantir-java-format       | 8.11.0 / 2.103.0 | Formatação verificada no build                                                                    |
+| CycloneDX Gradle plugin               | 3.5.1            | SBOM de cada serviço                                                                              |
+| networknt json-schema-validator       | 3.0.9            | Somente testes: valida respostas e eventos contra `contracts/` (usa Jackson 3)                    |
 | Spring Data JDBC/JPA, Spring Security | via BOM          | Escolha por serviço (JDBC por padrão; JPA quando o modelo justificar)                             |
 
 ## Frontend

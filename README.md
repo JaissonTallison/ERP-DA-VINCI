@@ -21,7 +21,7 @@ Plataforma ERP multissetorial, global e multi-tenant — SaaS compartilhado e im
 ```bash
 # Frontend (TypeScript)
 pnpm install
-pnpm dev            # http://localhost:3000
+pnpm dev            # http://localhost:5620
 pnpm lint && pnpm typecheck && pnpm test && pnpm build
 
 # Backend (Java)

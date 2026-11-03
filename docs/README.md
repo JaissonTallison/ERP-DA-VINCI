@@ -10,6 +10,10 @@
 - [Segurança e governança](architecture/security-governance.md)
 - [Confiabilidade](architecture/reliability.md) — SLO, RPO/RTO, padrões obrigatórios
 
+## Serviços
+
+- [Tenant Registry](services/tenant-registry.md)
+
 ## Decisões
 
 - [ADRs](adr/README.md)
@@ -18,6 +22,10 @@
 
 - [Padrões de engenharia](engineering/standards.md)
 - [Design System](engineering/design-system.md)
+
+## Marca
+
+- [Identidade visual](../brand/README.md)
 
 ## Desenvolvimento
 

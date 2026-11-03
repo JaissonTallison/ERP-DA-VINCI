@@ -1,0 +1,328 @@
+openapi: 3.1.0
+info:
+  title: Tenant Registry API
+  version: 1.0.0
+  description: |
+    API do Tenant Registry (Global Control Plane). Fonte da verdade sobre tenants e células:
+    região de residência, célula, modelo de isolamento e ciclo de vida.
+
+    Acesso restrito à operação da plataforma. Escopos OAuth 2.0:
+    `tenant-registry.read` e `tenant-registry.write`.
+servers:
+  - url: http://localhost:5630
+    description: Ambiente local
+security:
+  - oauth2: []
+tags:
+  - name: tenants
+  - name: cells
+paths:
+  /v1/tenants:
+    post:
+      tags: [tenants]
+      operationId: registerTenant
+      summary: Registra um tenant e o aloca em uma célula da região
+      security:
+        - oauth2: [tenant-registry.write]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterTenantRequest' }
+      responses:
+        '201':
+          description: Tenant registrado (ou repetição idempotente da mesma requisição)
+          headers:
+            Location: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Tenant' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+    get:
+      tags: [tenants]
+      operationId: listTenants
+      summary: Lista tenants em ordem de slug, com paginação por cursor
+      security:
+        - oauth2: [tenant-registry.read]
+      parameters:
+        - { name: region, in: query, schema: { $ref: '#/components/schemas/RegionCode' } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/TenantStatus' } }
+        - {
+            name: limit,
+            in: query,
+            schema: { type: integer, minimum: 1, maximum: 200, default: 50 },
+          }
+        - { name: cursor, in: query, schema: { type: string } }
+      responses:
+        '200':
+          description: Página de tenants
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TenantPage' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /v1/tenants/{tenantId}:
+    get:
+      tags: [tenants]
+      operationId: getTenant
+      security:
+        - oauth2: [tenant-registry.read]
+      parameters:
+        - $ref: '#/components/parameters/TenantIdPath'
+      responses:
+        '200':
+          description: Tenant
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Tenant' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /v1/tenants/{tenantId}/activate:
+    post:
+      tags: [tenants]
+      operationId: activateTenant
+      summary: Conclui o provisionamento (PROVISIONING → ACTIVE). Idempotente.
+      security:
+        - oauth2: [tenant-registry.write]
+      parameters:
+        - $ref: '#/components/parameters/TenantIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200': { $ref: '#/components/responses/TenantResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/tenants/{tenantId}/suspend:
+    post:
+      tags: [tenants]
+      operationId: suspendTenant
+      summary: Suspende um tenant ativo (ACTIVE → SUSPENDED). Idempotente.
+      security:
+        - oauth2: [tenant-registry.write]
+      parameters:
+        - $ref: '#/components/parameters/TenantIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SuspendTenantRequest' }
+      responses:
+        '200': { $ref: '#/components/responses/TenantResponse' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/tenants/{tenantId}/reactivate:
+    post:
+      tags: [tenants]
+      operationId: reactivateTenant
+      summary: Reativa um tenant suspenso (SUSPENDED → ACTIVE). Idempotente.
+      security:
+        - oauth2: [tenant-registry.write]
+      parameters:
+        - $ref: '#/components/parameters/TenantIdPath'
+        - $ref: '#/components/parameters/CorrelationId'
+      responses:
+        '200': { $ref: '#/components/responses/TenantResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/cells:
+    post:
+      tags: [cells]
+      operationId: registerCell
+      summary: Registra uma célula no catálogo
+      security:
+        - oauth2: [tenant-registry.write]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterCellRequest' }
+      responses:
+        '201':
+          description: Célula registrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Cell' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      tags: [cells]
+      operationId: listCells
+      security:
+        - oauth2: [tenant-registry.read]
+      parameters:
+        - { name: region, in: query, schema: { $ref: '#/components/schemas/RegionCode' } }
+      responses:
+        '200':
+          description: Células
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                additionalProperties: false
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Cell' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: http://localhost:5607/realms/platform/protocol/openid-connect/token
+          scopes:
+            tenant-registry.read: Consultar tenants e células
+            tenant-registry.write: Registrar e alterar tenants e células
+  parameters:
+    TenantIdPath:
+      name: tenantId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Chave única por intenção de criação. Repetir a mesma requisição com a mesma chave devolve o mesmo resultado.
+      schema: { type: string, minLength: 1, maxLength: 100 }
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      description: Identificador de correlação propagado para logs e eventos. Gerado se ausente.
+      schema: { type: string, pattern: '^[A-Za-z0-9-]{1,64}$' }
+  responses:
+    TenantResponse:
+      description: Tenant após a operação
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Tenant' }
+    Problem:
+      description: Erro no formato RFC 9457
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Unauthorized:
+      description: Token ausente ou inválido
+    Forbidden:
+      description: Token sem o escopo necessário
+  schemas:
+    RegionCode:
+      type: string
+      pattern: '^[a-z]{2}-[1-9][0-9]?$'
+      examples: [br-1, eu-1]
+    IsolationModel:
+      type: string
+      enum: [pooled, bridge, silo]
+    CellId:
+      type: string
+      pattern: '^[a-z]{2}-[1-9][0-9]?-(pooled|bridge|silo)-[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$'
+      examples: [br-1-pooled-01]
+    TenantStatus:
+      type: string
+      enum: [PROVISIONING, ACTIVE, SUSPENDED]
+    TenantSlug:
+      type: string
+      pattern: '^[a-z][a-z0-9-]{1,38}[a-z0-9]$'
+      description: Identificador legível e único, usado em subdomínio. Imutável.
+    RegisterTenantRequest:
+      type: object
+      required: [slug, displayName, region, isolation]
+      additionalProperties: false
+      properties:
+        slug: { $ref: '#/components/schemas/TenantSlug' }
+        displayName: { type: string, minLength: 1, maxLength: 120 }
+        region: { $ref: '#/components/schemas/RegionCode' }
+        isolation: { $ref: '#/components/schemas/IsolationModel' }
+    SuspendTenantRequest:
+      type: object
+      required: [reason]
+      additionalProperties: false
+      properties:
+        reason: { type: string, minLength: 1, maxLength: 500 }
+    Tenant:
+      type: object
+      required:
+        [id, slug, displayName, region, isolation, cellId, status, createdAt, updatedAt, version]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        slug: { $ref: '#/components/schemas/TenantSlug' }
+        displayName: { type: string }
+        region: { $ref: '#/components/schemas/RegionCode' }
+        isolation: { $ref: '#/components/schemas/IsolationModel' }
+        cellId: { $ref: '#/components/schemas/CellId' }
+        status: { $ref: '#/components/schemas/TenantStatus' }
+        statusReason: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    TenantPage:
+      type: object
+      required: [items]
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Tenant' }
+        nextCursor:
+          type: [string, 'null']
+          description: Ausente ou nulo na última página.
+    RegisterCellRequest:
+      type: object
+      required: [region, isolation, name, capacity]
+      additionalProperties: false
+      properties:
+        region: { $ref: '#/components/schemas/RegionCode' }
+        isolation: { $ref: '#/components/schemas/IsolationModel' }
+        name: { type: string, pattern: '^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$' }
+        capacity:
+          type: integer
+          minimum: 1
+          maximum: 100000
+          description: Máximo de tenants. Células silo têm capacidade 1.
+    Cell:
+      type: object
+      required: [id, region, isolation, capacity, tenantCount, status, createdAt]
+      additionalProperties: false
+      properties:
+        id: { $ref: '#/components/schemas/CellId' }
+        region: { $ref: '#/components/schemas/RegionCode' }
+        isolation: { $ref: '#/components/schemas/IsolationModel' }
+        capacity: { type: integer, minimum: 1 }
+        tenantCount: { type: integer, minimum: 0 }
+        status: { type: string, enum: [OPEN, CLOSED] }
+        createdAt: { type: string, format: date-time }
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string, format: uri-reference }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        code:
+          type: string
+          description: Código estável do erro, para tratamento por máquina.

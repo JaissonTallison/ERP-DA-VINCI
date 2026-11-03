@@ -17,26 +17,36 @@ Não é preciso instalar o Gradle: use `./gradlew`.
 pnpm install          # dependências TypeScript
 ./gradlew build       # baixa Gradle 9.8.2 e JDK 25 na primeira vez; compila e testa o backend
 docker compose up -d  # PostgreSQL, Redis e Kafka
-pnpm dev              # frontend em http://localhost:3000
+pnpm dev              # frontend em http://localhost:5620
 ```
 
 Para sobrescrever senhas do ambiente local: `cp .env.example .env`. Valores apenas para desenvolvimento.
 
-## Serviços do compose
+## Mapa de portas
 
-Todos os serviços escutam só em `127.0.0.1`.
+A máquina de desenvolvimento roda vários projetos. O ERP usa **somente a faixa 5600–5699**, sempre em `127.0.0.1`:
 
-| Perfil          | Serviço                                              | Porta                            | Acesso                                            |
-| --------------- | ---------------------------------------------------- | -------------------------------- | ------------------------------------------------- |
-| (padrão)        | PostgreSQL 18                                        | 5432                             | `davinci` / `davinci_dev`, banco `davinci`        |
-| (padrão)        | Redis 8                                              | 6379                             |                                                   |
-| (padrão)        | Kafka 4.2 (KRaft)                                    | 9092                             | auto-criação de tópicos desligada                 |
-| `search`        | OpenSearch 3                                         | 9200                             | sem segurança (apenas local)                      |
-| `analytics`     | ClickHouse                                           | 8123 (HTTP), 9000 (nativo)       | `davinci` / `davinci_dev`, banco `analytics`      |
-| `storage`       | SeaweedFS (S3)                                       | 8333                             | access key `davinci`, secret `davinci_dev_secret` |
-| `identity`      | Keycloak 26                                          | 8180                             | console `admin` / `davinci_dev`                   |
-| `observability` | Grafana + Prometheus + Loki + Tempo + OTel Collector | 3001 (Grafana), 4317/4318 (OTLP) |                                                   |
-| `full`          | todos acima                                          |                                  |                                                   |
+| Faixa     | Uso                                                         |
+| --------- | ----------------------------------------------------------- |
+| 5600–5619 | Infraestrutura do `compose.yaml`                            |
+| 5620–5629 | Aplicações TypeScript                                       |
+| 5630–5699 | Serviços Java (um por bounded context, em ordem de criação) |
+
+Antes de reservar uma porta nova, confira se está livre: `ss -ltn "( sport = :5631 )"`.
+
+| Perfil          | Serviço                                              | Porta                                      | Acesso                                            |
+| --------------- | ---------------------------------------------------- | ------------------------------------------ | ------------------------------------------------- |
+| (padrão)        | PostgreSQL 18                                        | 5600                                       | `davinci` / `davinci_dev`, banco `davinci`        |
+| (padrão)        | Redis 8                                              | 5601                                       |                                                   |
+| (padrão)        | Kafka 4.2 (KRaft)                                    | 5602                                       | auto-criação de tópicos desligada                 |
+| `search`        | OpenSearch 3                                         | 5603                                       | sem segurança (apenas local)                      |
+| `analytics`     | ClickHouse                                           | 5604 (HTTP), 5605 (nativo)                 | `davinci` / `davinci_dev`, banco `analytics`      |
+| `storage`       | SeaweedFS (S3)                                       | 5606                                       | access key `davinci`, secret `davinci_dev_secret` |
+| `identity`      | Keycloak 26                                          | 5607                                       | console `admin` / `davinci_dev`                   |
+| `observability` | Grafana + Prometheus + Loki + Tempo + OTel Collector | 5608 (Grafana), 5609/5610 (OTLP gRPC/HTTP) |                                                   |
+| `full`          | todos acima                                          |                                            |                                                   |
+| —               | Frontend (`pnpm dev`)                                | 5620                                       |                                                   |
+| —               | Tenant Registry                                      | 5630                                       |                                                   |
 
 ```bash
 docker compose --profile identity --profile observability up -d   # perfis específicos

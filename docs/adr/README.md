@@ -20,4 +20,7 @@ Estados: **Proposto** (aguarda aprovação) · **Aceito** · **Substituído por 
 | [0012](0012-cadeia-de-suprimentos-de-software.md)  | Segurança da cadeia de suprimentos de software                          | Aceito                                |
 | [0013](0013-infraestrutura-de-producao.md)         | Estratégia de infraestrutura de produção                                | **Proposto**                          |
 
+| [0014](0014-eventos-json-schema.md) | Eventos em JSON, validados por JSON Schema | Aceito |
+| [0015](0015-tenant-registry.md) | Desenho do Tenant Registry | Aceito |
+
 Modelo: [template.md](template.md).

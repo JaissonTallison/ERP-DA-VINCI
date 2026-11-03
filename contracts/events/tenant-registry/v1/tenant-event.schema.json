@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:davinci:contracts:events:tenant-registry:v1:tenant-event",
+  "title": "Evento de ciclo de vida de tenant (CloudEvents 1.0, modo estruturado)",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "time",
+    "datacontenttype",
+    "dataschema",
+    "subject",
+    "tenantid",
+    "cellid",
+    "correlationid",
+    "data"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "specversion": { "const": "1.0" },
+    "id": { "type": "string", "format": "uuid" },
+    "source": { "const": "/control-plane/tenant-registry" },
+    "type": {
+      "enum": [
+        "br.com.davinci.tenantregistry.tenant.registered.v1",
+        "br.com.davinci.tenantregistry.tenant.activated.v1",
+        "br.com.davinci.tenantregistry.tenant.suspended.v1",
+        "br.com.davinci.tenantregistry.tenant.reactivated.v1"
+      ]
+    },
+    "time": { "type": "string", "format": "date-time" },
+    "datacontenttype": { "const": "application/json" },
+    "dataschema": { "const": "urn:davinci:contracts:events:tenant-registry:v1:tenant-event" },
+    "subject": { "type": "string", "format": "uuid" },
+    "tenantid": { "type": "string", "format": "uuid" },
+    "cellid": { "$ref": "#/$defs/cellId" },
+    "correlationid": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "data": { "$ref": "#/$defs/tenantSnapshot" }
+  },
+  "$defs": {
+    "cellId": {
+      "type": "string",
+      "pattern": "^[a-z]{2}-[1-9][0-9]?-(pooled|bridge|silo)-[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$"
+    },
+    "tenantSnapshot": {
+      "description": "Estado completo do tenant após o evento. Consumidores podem substituir sua projeção local sem consultar a API.",
+      "type": "object",
+      "required": [
+        "tenantId",
+        "slug",
+        "displayName",
+        "region",
+        "isolation",
+        "cellId",
+        "status",
+        "version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tenantId": { "type": "string", "format": "uuid" },
+        "slug": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,38}[a-z0-9]$" },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "region": { "type": "string", "pattern": "^[a-z]{2}-[1-9][0-9]?$" },
+        "isolation": { "enum": ["pooled", "bridge", "silo"] },
+        "cellId": { "$ref": "#/$defs/cellId" },
+        "status": { "enum": ["PROVISIONING", "ACTIVE", "SUSPENDED"] },
+        "statusReason": { "type": ["string", "null"] },
+        "version": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Versão do agregado. Consumidores descartam eventos com versão menor ou igual à já aplicada."
+        }
+      }
+    }
+  }
+}

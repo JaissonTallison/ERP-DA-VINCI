@@ -24,4 +24,6 @@ rootProject.name = "erp-da-vinci"
 include(":platform-kernel")
 project(":platform-kernel").projectDir = file("libs/java/platform-kernel")
 
-// Serviços de domínio entram aqui a partir da Fase 2, um por bounded context aprovado.
+// Serviços de domínio: um por bounded context aprovado (docs/architecture/bounded-contexts.md).
+include(":tenant-registry")
+project(":tenant-registry").projectDir = file("services/tenant-registry")
