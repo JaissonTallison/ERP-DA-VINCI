@@ -1,0 +1,17 @@
+@import 'tailwindcss';
+@import '@davinci/design-tokens/tokens.css';
+
+@theme inline {
+  --font-sans: var(--font-plex), 'Segoe UI', system-ui, sans-serif;
+}
+
+html {
+  font-size: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+}

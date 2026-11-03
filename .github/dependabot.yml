@@ -1,0 +1,33 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      actions: { patterns: ['*'] }
+
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 10
+    groups:
+      next-react:
+        patterns: ['next', 'eslint-config-next', 'react', 'react-dom', '@types/react*']
+      tooling:
+        patterns: ['eslint', '@eslint/*', 'typescript-eslint', 'prettier', 'turbo', 'vitest']
+    ignore:
+      # TypeScript 7 e ESLint 10 bloqueados até o ecossistema suportar (ADR-0007).
+      - dependency-name: typescript
+        versions: ['>=7']
+      - dependency-name: eslint
+        versions: ['>=10']
+
+  - package-ecosystem: gradle
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      spring-boot: { patterns: ['org.springframework.boot*'] }
+
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule: { interval: weekly }

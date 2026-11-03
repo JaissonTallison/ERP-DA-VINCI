@@ -1,0 +1,156 @@
+# Ambiente LOCAL de desenvolvimento do ERP-DA-VINCI. Não é referência para produção.
+# Perfis: padrão (postgres, redis, kafka) · search · analytics · storage · identity · observability · full
+# Uso e portas: docs/development/setup.md
+
+name: davinci
+
+x-defaults: &defaults
+  restart: unless-stopped
+  logging:
+    driver: local
+
+services:
+  postgres:
+    <<: *defaults
+    image: postgres:18.6
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-davinci}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-davinci_dev}
+      POSTGRES_DB: davinci
+    ports: ['127.0.0.1:5432:5432']
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./infra/local/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d davinci']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    <<: *defaults
+    image: redis:8.8.4
+    command: ['redis-server', '--appendonly', 'yes', '--maxmemory', '256mb']
+    ports: ['127.0.0.1:6379:6379']
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  kafka:
+    <<: *defaults
+    image: apache/kafka:4.2.2
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:19092,EXTERNAL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      # Tópicos são criados pelos contratos de cada serviço, nunca implicitamente.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_HEAP_OPTS: -Xms256m -Xmx512m
+    ports: ['127.0.0.1:9092:9092']
+    volumes: [kafka-data:/var/lib/kafka/data]
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 20s
+
+  opensearch:
+    <<: *defaults
+    image: opensearchproject/opensearch:3.9.0
+    profiles: [search, full]
+    environment:
+      discovery.type: single-node
+      DISABLE_SECURITY_PLUGIN: 'true'
+      DISABLE_INSTALL_DEMO_CONFIG: 'true'
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      nofile: { soft: 65536, hard: 65536 }
+    ports: ['127.0.0.1:9200:9200']
+    volumes: [opensearch-data:/usr/share/opensearch/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fs http://localhost:9200/_cluster/health > /dev/null']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  clickhouse:
+    <<: *defaults
+    image: clickhouse/clickhouse-server:26.8.36
+    profiles: [analytics, full]
+    environment:
+      CLICKHOUSE_DB: analytics
+      CLICKHOUSE_USER: davinci
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-davinci_dev}
+    ulimits:
+      nofile: { soft: 262144, hard: 262144 }
+    ports: ['127.0.0.1:8123:8123', '127.0.0.1:9000:9000']
+    volumes: [clickhouse-data:/var/lib/clickhouse]
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:8123/ping > /dev/null']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  # Object storage compatível com S3. MinIO deixou de publicar imagens; ver ADR-0010.
+  seaweedfs:
+    <<: *defaults
+    image: chrislusf/seaweedfs:4.52
+    profiles: [storage, full]
+    command: ['server', '-dir=/data', '-s3', '-s3.port=8333', '-s3.config=/etc/seaweedfs/s3.json']
+    ports: ['127.0.0.1:8333:8333']
+    volumes:
+      - seaweedfs-data:/data
+      - ./infra/local/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro
+
+  keycloak:
+    <<: *defaults
+    image: quay.io/keycloak/keycloak:26.8.1
+    profiles: [identity, full]
+    command: ['start-dev']
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: ${POSTGRES_USER:-davinci}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-davinci_dev}
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-davinci_dev}
+      KC_HEALTH_ENABLED: 'true'
+      JAVA_OPTS_KC_HEAP: -Xms256m -Xmx768m
+    ports: ['127.0.0.1:8180:8080']
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  # Grafana + Prometheus + Loki + Tempo + OpenTelemetry Collector em um único contêiner (só local).
+  observability:
+    <<: *defaults
+    image: grafana/otel-lgtm:0.39.0
+    profiles: [observability, full]
+    ports:
+      - 127.0.0.1:3001:3000 # Grafana
+      - 127.0.0.1:4317:4317 # OTLP gRPC
+      - 127.0.0.1:4318:4318 # OTLP HTTP
+    volumes: [observability-data:/data]
+
+volumes:
+  postgres-data:
+  redis-data:
+  kafka-data:
+  opensearch-data:
+  clickhouse-data:
+  seaweedfs-data:
+  observability-data:

@@ -1,0 +1,11 @@
+pnpm-lock.yaml
+.next/
+.turbo/
+dist/
+coverage/
+build/
+.gradle/
+gradle/
+libs/java/
+build-logic/
+services/

@@ -1,0 +1,42 @@
+/*
+ * Tokens do Design System do ERP-DA-VINCI.
+ * Fonte única de cores, tipografia, cantos e sombras. Consumido via Tailwind v4 (@theme).
+ * Regras e motivação: docs/engineering/design-system.md
+ */
+@theme {
+  /* Cores */
+  --color-brand: #102a43;
+  --color-brand-zebra: rgb(16 42 67 / 0.05);
+  --color-primary: #0f766e;
+  --color-primary-hover: #0d645d;
+  --color-marker: #f59e0b;
+  --color-attention: #b45309;
+  --color-danger: #b91c1c;
+  --color-surface: #ffffff;
+  --color-canvas: #f4f7fa;
+  --color-border: #d9e2ec;
+  --color-text: #102a43;
+  --color-text-muted: #334155;
+
+  /* Tipografia — escala de trabalho; nada abaixo de 12,5 px */
+  --font-sans: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+  --text-xs: 0.78125rem; /* 12,5 px */
+  --text-sm: 0.875rem; /* 14 px */
+  --text-base: 0.9375rem; /* 15 px — texto principal */
+  --text-lg: 1.0625rem; /* 17 px */
+  --text-xl: 1.1875rem; /* 19 px */
+  --text-2xl: 1.4375rem; /* 23 px */
+  --text-3xl: 1.75rem; /* 28 px — título de página */
+
+  /* Cantos */
+  --radius-sm: 2px; /* só checkbox */
+  --radius-md: 8px; /* campos, botões, cards, menus */
+
+  /* Profundidade */
+  --shadow-card: 0 1px 2px rgb(16 42 67 / 0.05), 0 4px 12px rgb(16 42 67 / 0.06);
+  --shadow-bar: 0 1px 3px rgb(16 42 67 / 0.08);
+
+  /* Controles */
+  --spacing-field: 2.25rem; /* 36 px */
+  --spacing-field-access: 2.75rem; /* 44 px — telas de acesso */
+}
