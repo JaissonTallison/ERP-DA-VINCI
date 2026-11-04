@@ -4,12 +4,12 @@
 
 ## Serviços implementados
 
-| Serviço           | Plano         | Porta local | Situação                                                   | Documentação                                         |
-| ----------------- | ------------- | ----------- | ---------------------------------------------------------- | ---------------------------------------------------- |
-| `tenant-registry` | Control Plane | 5630        | Em uso                                                     | [TENANT_REGISTRY.md](../services/TENANT_REGISTRY.md) |
-| `identity`        | Data Plane    | 5631        | Em uso (sincronização de organizações; API pública futura) | [IDENTITY.md](../services/IDENTITY.md)               |
-| `apps/web` (BFF)  | Data Plane    | 5620        | Em uso (login e sessão)                                    | [IDENTITY.md](../services/IDENTITY.md)               |
-| `organization`    | Data Plane    | 5632        | Em uso (etapa 2: grupos econômicos e entidades jurídicas)  | [ORGANIZATION.md](../services/ORGANIZATION.md)       |
+| Serviço           | Plano         | Porta local | Situação                                                              | Documentação                                         |
+| ----------------- | ------------- | ----------- | --------------------------------------------------------------------- | ---------------------------------------------------- |
+| `tenant-registry` | Control Plane | 5630        | Em uso                                                                | [TENANT_REGISTRY.md](../services/TENANT_REGISTRY.md) |
+| `identity`        | Data Plane    | 5631        | Em uso (sincronização de organizações; API pública futura)            | [IDENTITY.md](../services/IDENTITY.md)               |
+| `apps/web` (BFF)  | Data Plane    | 5620        | Em uso (login e sessão)                                               | [IDENTITY.md](../services/IDENTITY.md)               |
+| `organization`    | Data Plane    | 5632        | Em uso (etapas 2 e 3: grupos, entidades jurídicas e estabelecimentos) | [ORGANIZATION.md](../services/ORGANIZATION.md)       |
 
 Os demais contextos abaixo são o mapa-alvo: cada um vira serviço só quando entrar em desenvolvimento.
 

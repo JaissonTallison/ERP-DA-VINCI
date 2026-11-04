@@ -1,7 +1,9 @@
 package br.com.davinci.erp.organization.corporate.api;
 
+import br.com.davinci.erp.organization.corporate.application.EstablishmentView;
 import br.com.davinci.erp.organization.corporate.application.LegalEntityView;
 import br.com.davinci.erp.organization.corporate.domain.EconomicGroup;
+import br.com.davinci.erp.organization.corporate.domain.Establishment;
 import br.com.davinci.erp.organization.corporate.domain.LegalEntity;
 import br.com.davinci.erp.organization.shared.domain.CountryCode;
 import br.com.davinci.erp.organization.shared.domain.PostalAddress;
@@ -197,4 +199,61 @@ final class Representations {
 
     record LegalEntityPage(
             List<LegalEntityResponse> items, @Nullable String nextCursor) {}
+
+    record OpenEstablishmentRequest(
+            @NotNull @Nullable UUID legalEntityId,
+            @NotBlank @Nullable String code,
+            @NotBlank @Nullable String name,
+            @NotBlank @Nullable String type,
+            @NotNull @Valid @Nullable AddressRequest address,
+            @Nullable String timezone,
+            @Size(max = 10) @Valid @Nullable List<TaxIdentifierRequest> taxIdentifiers,
+            @Nullable LocalDate openedOn) {}
+
+    record EstablishmentResponse(
+            UUID id,
+            UUID legalEntityId,
+            String code,
+            String name,
+            String type,
+            AddressResponse address,
+            String timezone,
+            String status,
+            LocalDate openedOn,
+            @Nullable LocalDate closedOn,
+            List<TaxIdentifierResponse> taxIdentifiers,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {
+
+        static EstablishmentResponse from(EstablishmentView view) {
+            Establishment e = view.establishment();
+            return new EstablishmentResponse(
+                    e.id(),
+                    e.legalEntityId(),
+                    e.code().value(),
+                    e.name(),
+                    e.type().name(),
+                    AddressResponse.from(e.address()),
+                    e.timezone().getId(),
+                    e.status().name(),
+                    e.openedOn(),
+                    e.closedOn(),
+                    view.taxIdentifiers().stream()
+                            .map(t -> new TaxIdentifierResponse(
+                                    t.id(),
+                                    t.identifier().scheme().name(),
+                                    t.identifier().value(),
+                                    t.primary(),
+                                    t.period().validFrom(),
+                                    t.period().validTo()))
+                            .toList(),
+                    e.createdAt(),
+                    e.updatedAt(),
+                    e.version());
+        }
+    }
+
+    record EstablishmentPage(
+            List<EstablishmentResponse> items, @Nullable String nextCursor) {}
 }

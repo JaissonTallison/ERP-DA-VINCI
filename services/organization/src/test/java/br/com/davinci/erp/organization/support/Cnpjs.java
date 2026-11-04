@@ -11,7 +11,16 @@ public final class Cnpjs {
     private Cnpjs() {}
 
     public static String random() {
-        String base = "%08d0001".formatted(ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999));
+        return of("%08d".formatted(ThreadLocalRandom.current().nextInt(10_000_000, 99_999_999)), 1);
+    }
+
+    /** CNPJ do estabelecimento {@code number} com a raiz (8 primeiros dígitos) de {@code cnpj}. */
+    public static String branchOf(String cnpj, int number) {
+        return of(cnpj.substring(0, 8), number);
+    }
+
+    private static String of(String root, int number) {
+        String base = root + "%04d".formatted(number);
         String withFirst = base + digit(base, W1);
         return withFirst + digit(withFirst, W2);
     }

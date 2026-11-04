@@ -102,8 +102,9 @@ Campos: `id`, `legalEntityId`, `code`, `name`, `type` (`HEADQUARTERS`, `BRANCH`,
 **Invariantes**
 
 - Pertence a exatamente uma entidade jurídica do mesmo tenant, imutável (trocar de entidade = encerrar e abrir outro).
-- No máximo um `HEADQUARTERS` ativo por entidade jurídica.
-- Só fica `ACTIVE` se a entidade jurídica estiver `ACTIVE`.
+- No máximo um `HEADQUARTERS` não encerrado por entidade jurídica.
+- Só é aberto ou reativado com a entidade jurídica `ACTIVE`. Suspender a entidade não suspende os estabelecimentos (a empresa inativa mantém os registros); encerrar a entidade exige todos os estabelecimentos encerrados.
+- Fica no país da entidade (estabelecimento no exterior fica para uma etapa futura).
 - O identificador fiscal do estabelecimento é coerente com o da entidade quando o esquema exigir (ex.: mesma raiz de CNPJ). Regra plugável por país.
 
 ### 3.4 `OrganizationalUnit`

@@ -6,7 +6,9 @@ public enum Permission {
     ECONOMIC_GROUP_MANAGE(false),
     LEGAL_ENTITY_READ(true),
     LEGAL_ENTITY_MANAGE(false),
-    LEGAL_ENTITY_LIFECYCLE(false);
+    LEGAL_ENTITY_LIFECYCLE(false),
+    ESTABLISHMENT_READ(true),
+    ESTABLISHMENT_MANAGE(false);
 
     private final boolean readOnly;
 

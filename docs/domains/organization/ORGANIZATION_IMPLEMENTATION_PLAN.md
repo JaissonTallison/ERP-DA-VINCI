@@ -29,7 +29,9 @@ Documentos ORGANIZATION_* e ADRs 0017 a 0022. **Saída:** aprovação do desenho
 
 **Tamanho:** M.
 
-## Etapa 3 — Estabelecimentos
+## Etapa 3 — Estabelecimentos ✔ concluída (2026-11-03)
+
+> Entregue: 69 testes no serviço (10 novos) e teste ponta a ponta com token real. Decisões de detalhe: identificadores do estabelecimento em tabela própria (a matriz usa o CNPJ da entidade); suspender a entidade não suspende os estabelecimentos (só bloqueia abrir e reativar); estabelecimento no exterior fica para depois.
 
 Cadastro e ciclo de vida, matriz única, coerência do identificador fiscal com a entidade (regra plugável; CNPJ com a mesma raiz), eventos `establishment.*`.
 

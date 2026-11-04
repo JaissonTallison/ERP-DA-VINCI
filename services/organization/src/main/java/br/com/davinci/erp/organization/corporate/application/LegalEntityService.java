@@ -232,7 +232,13 @@ public class LegalEntityService {
             }
             case SUSPEND -> current.suspend(now);
             case REACTIVATE -> current.reactivate(now);
-            case CLOSE -> current.close(on, now);
+            case CLOSE -> {
+                if (entities.hasOpenEstablishments(id)) {
+                    throw new ConflictException(
+                            "has-active-dependents", "Encerre os estabelecimentos da entidade antes de encerrá-la");
+                }
+                yield current.close(on, now);
+            }
         };
         if (changed == current) {
             return before;
@@ -363,6 +369,11 @@ public class LegalEntityService {
             throw new ConflictException("invalid-transition", "Grupo econômico encerrado não recebe entidades");
         }
         return group;
+    }
+
+    /** Entidade com identificadores fiscais, travada para a transação (usada ao abrir estabelecimentos). */
+    LegalEntityView lockedView(UUID id) {
+        return view(lock(id), null);
     }
 
     private LegalEntity find(UUID id) {

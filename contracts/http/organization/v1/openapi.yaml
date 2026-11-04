@@ -3,7 +3,7 @@ info:
   title: Organization Management API
   version: 1.0.0
   description: |
-    Estrutura corporativa do cliente: grupos econômicos e entidades jurídicas (etapa 2 da Fase 2).
+    Estrutura corporativa do cliente: grupos econômicos, entidades jurídicas (etapa 2) e estabelecimentos (etapa 3).
     O tenant vem sempre do token (claim `organization`); recurso de outro tenant responde 404.
     Modelo de domínio: docs/domains/organization/ORGANIZATION_DOMAIN_MODEL.md.
 servers:
@@ -183,6 +183,96 @@ paths:
       responses:
         '200': { $ref: '#/components/responses/LegalEntity' }
         '404': { $ref: '#/components/responses/Problem' }
+  /v1/establishments:
+    post:
+      operationId: openEstablishment
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/json: { schema: { $ref: '#/components/schemas/OpenEstablishmentRequest' } },
+          }
+      responses:
+        '201': { $ref: '#/components/responses/Establishment' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listEstablishments
+      parameters:
+        - { name: legalEntityId, in: query, schema: { type: string, format: uuid } }
+        - { name: type, in: query, schema: { $ref: '#/components/schemas/EstablishmentType' } }
+        - { name: status, in: query, schema: { enum: [ACTIVE, SUSPENDED, CLOSED] } }
+        - { name: country, in: query, schema: { $ref: '#/components/schemas/CountryCode' } }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Cursor' }
+      responses:
+        '200':
+          description: Página de estabelecimentos (ordem por código e id)
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/EstablishmentPage' } } }
+  /v1/establishments/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getEstablishment
+      responses:
+        '200': { $ref: '#/components/responses/Establishment' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updateEstablishment
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/merge-patch+json:
+              { schema: { $ref: '#/components/schemas/UpdateEstablishmentRequest' } },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/Establishment' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/establishments/{id}/{transition}:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - {
+          name: transition,
+          in: path,
+          required: true,
+          schema: { enum: [suspend, reactivate, close] },
+        }
+    post:
+      operationId: transitionEstablishment
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/Establishment' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/establishments/{id}/tax-identifiers:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: addEstablishmentTaxIdentifier
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/TaxIdentifierRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/Establishment' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/establishments/{id}/tax-identifiers/{taxIdentifierId}/end:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - { name: taxIdentifierId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: endEstablishmentTaxIdentifier
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/Establishment' }
+        '404': { $ref: '#/components/responses/Problem' }
 components:
   securitySchemes:
     bearer: { type: http, scheme: bearer, bearerFormat: JWT }
@@ -220,6 +310,9 @@ components:
     LegalEntity:
       description: Entidade jurídica
       content: { application/json: { schema: { $ref: '#/components/schemas/LegalEntity' } } }
+    Establishment:
+      description: Estabelecimento
+      content: { application/json: { schema: { $ref: '#/components/schemas/Establishment' } } }
     Problem:
       description: Erro RFC 9457
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
@@ -437,6 +530,76 @@ components:
       additionalProperties: false
       properties:
         items: { type: array, items: { $ref: '#/components/schemas/LegalEntity' } }
+        nextCursor: { type: [string, 'null'] }
+    EstablishmentType: { enum: [HEADQUARTERS, BRANCH, PLANT, STORE, WAREHOUSE, OFFICE, OTHER] }
+    OpenEstablishmentRequest:
+      type: object
+      required: [legalEntityId, code, name, type, address]
+      additionalProperties: false
+      description: A entidade precisa estar ACTIVE; o endereço fica no país dela. No Brasil, o CNPJ tem a raiz do CNPJ da entidade.
+      properties:
+        legalEntityId: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        type: { $ref: '#/components/schemas/EstablishmentType' }
+        address: { $ref: '#/components/schemas/PostalAddress' }
+        timezone: { type: string, description: 'Padrão: fuso da entidade' }
+        taxIdentifiers:
+          {
+            type: array,
+            maxItems: 10,
+            items: { $ref: '#/components/schemas/TaxIdentifierRequest' },
+          }
+        openedOn: { type: string, format: date, description: 'Padrão: hoje' }
+    UpdateEstablishmentRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        type: { $ref: '#/components/schemas/EstablishmentType' }
+        address: { $ref: '#/components/schemas/PostalAddress' }
+        timezone: { type: string }
+    Establishment:
+      type: object
+      required:
+        [
+          id,
+          legalEntityId,
+          code,
+          name,
+          type,
+          address,
+          timezone,
+          status,
+          openedOn,
+          closedOn,
+          taxIdentifiers,
+          createdAt,
+          updatedAt,
+          version,
+        ]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        legalEntityId: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string }
+        type: { $ref: '#/components/schemas/EstablishmentType' }
+        address: { $ref: '#/components/schemas/PostalAddress' }
+        timezone: { type: string }
+        status: { enum: [ACTIVE, SUSPENDED, CLOSED] }
+        openedOn: { type: string, format: date }
+        closedOn: { type: [string, 'null'], format: date }
+        taxIdentifiers: { type: array, items: { $ref: '#/components/schemas/TaxIdentifier' } }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    EstablishmentPage:
+      type: object
+      required: [items]
+      additionalProperties: false
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Establishment' } }
         nextCursor: { type: [string, 'null'] }
     Problem:
       type: object

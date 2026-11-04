@@ -48,6 +48,7 @@ Envelope e dados na mesma mensagem JSON (`application/cloudevents+json`):
 | `tenant-registry.tenant.v1.organization-dlt` | Organization (falhas) | Operação                                          | Mensagem original, sem transformação   |
 | `organization.economic-group.v1`             | Organization          | Futuros (Accounting, Finance, Analytics)          | `contracts/events/organization/v1/`    |
 | `organization.legal-entity.v1`               | Organization          | Futuros (Accounting, Finance, Tax, HR, Analytics) | `contracts/events/organization/v1/`    |
+| `organization.establishment.v1`              | Organization          | Futuros (Tax, HR, Inventory, Logistics)           | `contracts/events/organization/v1/`    |
 
 ## Garantias do produtor: Transactional Outbox
 

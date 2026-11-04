@@ -27,6 +27,16 @@ public final class Requests {
                 code, code, cnpj, group == null ? "" : "\"economicGroupId\":\"" + group + "\",", status, effectiveOn);
     }
 
+    public static String establishment(UUID entity, String code, String type, String cnpj) {
+        return """
+                {"legalEntityId":"%s","code":"%s","name":"Estabelecimento %s","type":"%s",
+                 "address":{"country":"BR","addressLines":["Rua das Flores, 10"],"locality":"Joinville",
+                            "administrativeArea":"SC","postalCode":"89201-000"},
+                 "taxIdentifiers":[{"scheme":"BR_CNPJ","value":"%s","primary":true}],
+                 "openedOn":"2026-02-01"}
+                """.formatted(entity, code, code, type, cnpj);
+    }
+
     public static String code() {
         return "C"
                 + UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase(java.util.Locale.ROOT);

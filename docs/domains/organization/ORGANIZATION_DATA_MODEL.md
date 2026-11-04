@@ -349,6 +349,7 @@ Para telas com milhares de nós, a API entrega **por nível** (`children` de um 
 
 ## 7. Migrações e operação
 
+- **Implementado (etapa 3):** `V2__organization_establishments.sql`. Diferença em relação ao esboço: os identificadores fiscais do estabelecimento ficam em `establishment_tax_identifier` (e não na mesma tabela da entidade com chaves opcionais), porque a matriz usa o mesmo CNPJ da entidade e a unicidade vale entre estabelecimentos.
 - **Implementado (etapa 2):** `V1__organization_corporate.sql` com tenant, grupos, entidades, pertença com vigência, identificadores fiscais, idempotência, auditoria e outbox. Função `current_tenant()` usada por todas as políticas. Exceção às permissões: `DELETE` em `legal_entity_group_assignment`, só para corrigir uma mudança de grupo no mesmo dia em que começava.
 
 - Flyway no próprio serviço, executado com o papel `organization_owner`. A aplicação usa `organization_app`.

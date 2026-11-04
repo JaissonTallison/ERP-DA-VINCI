@@ -2,21 +2,22 @@
 
 Serviço do contexto **Organization Management** (Data Plane): estrutura corporativa do cliente. Desenho completo em [docs/domains/organization](../domains/organization/ORGANIZATION_DOMAIN_MODEL.md); decisões nos ADRs 0017 a 0022.
 
-## O que já existe (etapa 2)
+## O que já existe (etapas 2 e 3)
 
 | Recurso | Situação |
 | --- | --- |
 | Grupos econômicos | Criar, listar, consultar, alterar (`If-Match`), encerrar (só sem entidades a partir da data) |
 | Entidades jurídicas | Criar (`PLANNED` ou `ACTIVE`), listar com filtros e `asOf`, consultar, alterar, ativar, suspender, reativar, encerrar |
+| Estabelecimentos | Matriz, filial, fábrica, loja, depósito, escritório: abrir (entidade ativa, mesmo país), listar por entidade, alterar, suspender, reativar (entidade ativa), encerrar. Uma matriz não encerrada por entidade; no Brasil, CNPJ com a raiz da entidade (a matriz usa o próprio CNPJ da entidade). Entidade só encerra sem estabelecimento aberto |
 | Pertença ao grupo | Com vigência; consulta "em qual grupo estava em D" |
 | Identificadores fiscais | `BR_CNPJ` com dígitos verificadores (inclusive alfanumérico); `US_EIN` e `EU_VAT` só formato. Entidade brasileira ativa exige CNPJ principal vigente |
 | Projeção do tenant | Eventos do Tenant Registry; tenant não ativo deixa a estrutura somente leitura |
-| Eventos | `organization.economic-group.v1`, `organization.legal-entity.v1` (outbox) |
+| Eventos | `organization.economic-group.v1`, `organization.legal-entity.v1`, `organization.establishment.v1` (outbox) |
 | Isolamento | RLS forçado + chaves estrangeiras compostas por tenant, provados em teste pela API e direto no banco |
 | Auditoria | `audit_log` append-only (ator, correlação, antes e depois) |
 | Autorização | Provisória: `tenant-admin` escreve, `tenant-user` lê (ADR-0021) |
 
-Próximas etapas: estabelecimentos, unidades e estruturas, reorganizações, centros de custo e participações ([plano](../domains/organization/ORGANIZATION_IMPLEMENTATION_PLAN.md)).
+Próximas etapas: unidades e estruturas, reorganizações, centros de custo e participações ([plano](../domains/organization/ORGANIZATION_IMPLEMENTATION_PLAN.md)).
 
 ## API e eventos
 

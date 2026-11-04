@@ -41,6 +41,11 @@ class PlatformConfig {
     }
 
     @Bean
+    NewTopic establishmentTopic(OutboxProperties outbox) {
+        return topic(EventPublisher.topic("establishment"), outbox);
+    }
+
+    @Bean
     NewTopic tenantDeadLetterTopic(OutboxProperties outbox) {
         return topic(DEAD_LETTER_TOPIC, outbox);
     }

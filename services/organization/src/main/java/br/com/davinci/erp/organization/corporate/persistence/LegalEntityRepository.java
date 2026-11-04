@@ -5,12 +5,8 @@ import br.com.davinci.erp.organization.corporate.domain.LegalEntity;
 import br.com.davinci.erp.organization.corporate.domain.LegalEntityStatus;
 import br.com.davinci.erp.organization.corporate.domain.TaxIdentifierRecord;
 import br.com.davinci.erp.organization.shared.domain.BusinessCode;
-import br.com.davinci.erp.organization.shared.domain.ConflictException;
 import br.com.davinci.erp.organization.shared.domain.CountryCode;
 import br.com.davinci.erp.organization.shared.domain.EffectivePeriod;
-import br.com.davinci.erp.organization.shared.domain.PostalAddress;
-import br.com.davinci.erp.organization.shared.domain.TaxIdentifier;
-import br.com.davinci.erp.organization.shared.domain.TaxScheme;
 import br.com.davinci.erp.platform.kernel.TenantId;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,13 +23,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.jspecify.annotations.Nullable;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /** Entidades jurídicas, pertença a grupos e identificadores fiscais do tenant da transação. */
 @Repository
@@ -45,11 +36,13 @@ public class LegalEntityRepository {
             updated_at, version""";
 
     private final JdbcClient jdbc;
-    private final JsonMapper json;
+    private final AddressJson addresses;
+    private final TaxIdentifierTable taxes;
 
-    public LegalEntityRepository(JdbcClient jdbc, JsonMapper json) {
+    public LegalEntityRepository(JdbcClient jdbc, AddressJson addresses) {
         this.jdbc = jdbc;
-        this.json = json;
+        this.addresses = addresses;
+        this.taxes = new TaxIdentifierTable(jdbc, "tax_identifier", "legal_entity_id");
     }
 
     public void insert(LegalEntity entity) {
@@ -68,7 +61,7 @@ public class LegalEntityRepository {
                         entity.timezone().getId(),
                         entity.defaultLocale().toLanguageTag(),
                         entity.fiscalYearStartMonth(),
-                        addressJson(entity.registeredAddress()),
+                        addresses.write(entity.registeredAddress()),
                         entity.incorporatedOn(),
                         entity.closedOn(),
                         entity.status().name(),
@@ -94,7 +87,7 @@ public class LegalEntityRepository {
                         entity.timezone().getId(),
                         entity.defaultLocale().toLanguageTag(),
                         entity.fiscalYearStartMonth(),
-                        addressJson(entity.registeredAddress()),
+                        addresses.write(entity.registeredAddress()),
                         entity.incorporatedOn(),
                         entity.closedOn(),
                         entity.status().name(),
@@ -238,95 +231,23 @@ public class LegalEntityRepository {
     }
 
     public Map<UUID, List<TaxIdentifierRecord>> taxIdentifiers(Collection<UUID> entityIds) {
-        Map<UUID, List<TaxIdentifierRecord>> result = new LinkedHashMap<>();
-        entityIds.forEach(id -> result.put(id, new ArrayList<>()));
-        if (entityIds.isEmpty()) {
-            return result;
-        }
-        jdbc.sql("""
-                        SELECT legal_entity_id, id, scheme, value, is_primary, valid_from, valid_to
-                        FROM tax_identifier WHERE legal_entity_id = ANY(?) ORDER BY valid_from, scheme
-                        """)
-                .param(entityIds.toArray(UUID[]::new))
-                .query((rs, row) -> {
-                    result.get(rs.getObject("legal_entity_id", UUID.class))
-                            .add(new TaxIdentifierRecord(
-                                    rs.getObject("id", UUID.class),
-                                    new TaxIdentifier(TaxScheme.valueOf(rs.getString("scheme")), rs.getString("value")),
-                                    rs.getBoolean("is_primary"),
-                                    new EffectivePeriod(
-                                            rs.getObject("valid_from", LocalDate.class), Rows.date(rs, "valid_to"))));
-                    return row;
-                })
-                .list();
-        return result;
+        return taxes.load(entityIds);
     }
 
     public void insertTaxIdentifier(TenantId tenant, UUID entityId, TaxIdentifierRecord record) {
-        try {
-            jdbc.sql(
-                            "INSERT INTO tax_identifier (id, tenant_id, legal_entity_id, scheme, value, is_primary, valid_from, valid_to)"
-                                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-                    .params(
-                            record.id(),
-                            tenant.value(),
-                            entityId,
-                            record.identifier().scheme().name(),
-                            record.identifier().value(),
-                            record.primary(),
-                            record.period().validFrom(),
-                            record.period().validTo())
-                    .update();
-        } catch (DataIntegrityViolationException e) {
-            throw translate(e);
-        }
+        taxes.insert(tenant, entityId, record);
     }
 
     public void endTaxIdentifier(UUID taxIdentifierId, LocalDate on) {
-        jdbc.sql("UPDATE tax_identifier SET valid_to = ? WHERE id = ?")
-                .params(on, taxIdentifierId)
-                .update();
+        taxes.end(taxIdentifierId, on);
     }
 
-    /** Violações de unicidade com vigência viram conflitos com código estável. */
-    static RuntimeException translate(DataIntegrityViolationException e) {
-        String message = String.valueOf(e.getMessage());
-        if (message.contains("tax_identifier_unique_value")) {
-            return new ConflictException(
-                    "duplicate-tax-identifier", "Identificador fiscal já vigente em outra entidade deste tenant");
-        }
-        if (message.contains("tax_identifier_one_primary")) {
-            return new ConflictException(
-                    "overlapping-period", "Já existe identificador fiscal principal vigente no período");
-        }
-        return e;
-    }
-
-    private String addressJson(PostalAddress address) {
-        ObjectNode node =
-                json.createObjectNode().put("country", address.country().value());
-        ArrayNode lines = node.putArray("addressLines");
-        address.addressLines().forEach(lines::add);
-        node.put("locality", address.locality());
-        node.put("administrativeArea", address.administrativeArea());
-        node.put("postalCode", address.postalCode());
-        return json.writeValueAsString(node);
-    }
-
-    private PostalAddress address(String raw) {
-        JsonNode node = json.readTree(raw);
-        List<String> lines = new ArrayList<>();
-        node.path("addressLines").forEach(line -> lines.add(line.asString()));
-        return new PostalAddress(
-                new CountryCode(node.path("country").asString()),
-                lines,
-                node.path("locality").asString(),
-                node.path("administrativeArea").isNull()
-                        ? null
-                        : node.path("administrativeArea").asString(null),
-                node.path("postalCode").isNull()
-                        ? null
-                        : node.path("postalCode").asString(null));
+    /** Estabelecimentos não encerrados da entidade (impedem o encerramento dela). */
+    public boolean hasOpenEstablishments(UUID entityId) {
+        return jdbc.sql("SELECT EXISTS (SELECT 1 FROM establishment WHERE legal_entity_id = ? AND status <> 'CLOSED')")
+                .param(entityId)
+                .query(Boolean.class)
+                .single();
     }
 
     private LegalEntity map(ResultSet rs, int row) throws SQLException {
@@ -343,7 +264,7 @@ public class LegalEntityRepository {
                 ZoneId.of(rs.getString("timezone")),
                 Locale.forLanguageTag(rs.getString("default_locale")),
                 rs.getInt("fiscal_year_start_month"),
-                address(rs.getString("registered_address")),
+                addresses.read(rs.getString("registered_address")),
                 Rows.date(rs, "incorporated_on"),
                 Rows.date(rs, "closed_on"),
                 LegalEntityStatus.valueOf(rs.getString("status")),

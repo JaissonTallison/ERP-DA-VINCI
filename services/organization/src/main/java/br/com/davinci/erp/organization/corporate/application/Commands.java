@@ -41,6 +41,22 @@ public final class Commands {
             boolean active,
             @Nullable LocalDate effectiveOn) {}
 
+    public record OpenEstablishment(
+            UUID legalEntityId,
+            String code,
+            String name,
+            String type,
+            PostalAddress address,
+            @Nullable String timezone,
+            List<NewTaxIdentifier> taxIdentifiers,
+            @Nullable LocalDate openedOn) {}
+
+    public record UpdateEstablishment(
+            @Nullable String name,
+            @Nullable String type,
+            @Nullable PostalAddress address,
+            @Nullable String timezone) {}
+
     /** Campos presentes no merge-patch; ausente = não muda. {@code tradeName}/{@code legalForm} aceitam limpar. */
     public record UpdateLegalEntity(
             @Nullable String legalName,
