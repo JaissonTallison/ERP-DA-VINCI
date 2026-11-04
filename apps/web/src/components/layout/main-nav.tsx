@@ -10,6 +10,7 @@ const LINKS = [
   { href: '/reorganizacoes', label: 'Reorganizações' },
   { href: '/centros-de-custo', label: 'Centros de custo' },
   { href: '/societario', label: 'Societário' },
+  { href: '/acessos', label: 'Acessos' },
 ];
 
 /** Navegação principal: trilho cinza-gelo com a opção ativa em branco. */

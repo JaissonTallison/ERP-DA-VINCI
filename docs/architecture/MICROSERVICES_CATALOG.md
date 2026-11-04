@@ -1,6 +1,6 @@
 # Bounded contexts
 
-> Estado: **aprovado como mapa-alvo**. Serviços de plataforma implementados: Tenant Registry e Identity. Nenhum serviço de negócio ainda.
+> Estado: **aprovado como mapa-alvo**. Serviços de plataforma implementados: Tenant Registry, Identity, Organization e Governance. Nenhum serviço de negócio ainda.
 
 ## Serviços implementados
 
@@ -10,6 +10,7 @@
 | `identity`        | Data Plane    | 5631        | Em uso (sincronização de organizações; API pública futura)                                        | [IDENTITY.md](../services/IDENTITY.md)               |
 | `apps/web` (BFF)  | Data Plane    | 5620        | Em uso (login e sessão)                                                                           | [IDENTITY.md](../services/IDENTITY.md)               |
 | `organization`    | Data Plane    | 5632        | Em uso (etapas 2 a 8: estrutura corporativa, organizacional, reorganizações, custos e societário) | [ORGANIZATION.md](../services/ORGANIZATION.md)       |
+| `governance`      | Data Plane    | 5633        | Em uso (papéis, atribuições e segregação de funções)                                              | [GOVERNANCE.md](../services/GOVERNANCE.md)           |
 
 Os demais contextos abaixo são o mapa-alvo: cada um vira serviço só quando entrar em desenvolvimento.
 

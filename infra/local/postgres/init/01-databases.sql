@@ -12,3 +12,8 @@ CREATE DATABASE identity OWNER identity;
 CREATE ROLE organization_owner LOGIN PASSWORD 'organization_owner_dev';
 CREATE ROLE organization_app LOGIN PASSWORD 'organization_app_dev';
 CREATE DATABASE organization OWNER organization_owner;
+
+-- Governance: mesma separação de papéis.
+CREATE ROLE governance_owner LOGIN PASSWORD 'governance_owner_dev';
+CREATE ROLE governance_app LOGIN PASSWORD 'governance_app_dev';
+CREATE DATABASE governance OWNER governance_owner;

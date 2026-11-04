@@ -14,7 +14,7 @@ type Problem = { title?: string; detail?: string; code?: string };
 
 export async function api<T>(
   path: string,
-  init?: RequestInit & { ifMatch?: number | undefined },
+  init?: RequestInit & { ifMatch?: number | undefined; service?: 'organization' | 'governance' },
 ): Promise<T> {
   const headers = new Headers(init?.headers);
   if (init?.body) {
@@ -26,7 +26,10 @@ export async function api<T>(
   if (init?.method === 'POST') {
     headers.set('idempotency-key', crypto.randomUUID());
   }
-  const response = await fetch(`/api/organization${path}`, { ...init, headers });
+  const response = await fetch(`/api/${init?.service ?? 'organization'}${path}`, {
+    ...init,
+    headers,
+  });
   if (!response.ok) {
     const problem = (await response.json().catch(() => ({}))) as Problem;
     throw new ApiError(

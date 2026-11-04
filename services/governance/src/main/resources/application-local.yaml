@@ -1,0 +1,19 @@
+# Perfil `local`: aponta para o compose.yaml (portas 5600–5699). Credenciais SOMENTE de desenvolvimento.
+# Ativado pelo `./gradlew :governance:bootRun` e pelos testes; nunca em outro ambiente.
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5600/governance
+    username: governance_app
+    password: governance_app_dev
+  flyway:
+    user: governance_owner
+    password: governance_owner_dev
+    placeholders:
+      appRole: governance_app
+  kafka:
+    bootstrap-servers: localhost:5602
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:5607/realms/davinci

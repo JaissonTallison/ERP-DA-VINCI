@@ -30,5 +30,6 @@ Estados: **Proposto** (aguarda aprovação) · **Aceito** · **Substituído por 
 | [0020](0020-vigencia-e-historico.md) | Vigência por data e histórico organizacional | Aceito |
 | [0021](0021-motor-de-autorizacao.md) | Motor de autorização: Cedar embutido, condicionado a prova de conceito | Aceito (condicionado à PoC) |
 | [0022](0022-identificadores-fiscais-extensiveis.md) | Identificadores fiscais por esquema, com validadores plugáveis | Aceito |
+| [0023](0023-governance-papeis-e-atribuicoes.md) | Governance como dono de papéis, atribuições e segregação de funções | Proposto |
 
 Modelo: [template.md](template.md).

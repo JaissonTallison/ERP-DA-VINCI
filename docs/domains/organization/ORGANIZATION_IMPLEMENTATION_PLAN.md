@@ -107,7 +107,7 @@ Tudo seguindo o Design System. Componentes de dados usam o TanStack Query.
 
 ## Etapa 9 — Autorização definitiva ⏸ bloqueada
 
-> Não iniciada: depende do contexto Governance (atribuições e políticas), que ainda não existe, e da prova de conceito do Cedar, que exige dependência nova com binding nativo e precisa de aprovação. As permissões novas (reorganização, aprovação, centros de custo, participações, histórico) já passam pelo `PolicyDecisionPoint`, então a troca da implementação não muda os casos de uso.
+> Não iniciada: o Governance já existe (papéis, atribuições e segregação), mas falta a prova de conceito do Cedar, que exige dependência nova com binding nativo e precisa de aprovação. As permissões novas (reorganização, aprovação, centros de custo, participações, histórico) já passam pelo `PolicyDecisionPoint`, então a troca da implementação não muda os casos de uso.
 
 Prova de conceito do Cedar (critérios em ORGANIZATION_SECURITY.md). Se aprovada: implementação de `PolicyDecisionPoint` com Cedar, escopos por grupo, entidade, filial e subárvore, pré-filtro de listagens, _step-up_ de MFA para operações críticas.
 
