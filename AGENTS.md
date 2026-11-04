@@ -6,7 +6,7 @@ Vale para pessoas e agentes de IA. Em conflito, este arquivo vence preferências
 
 - Leia o ADR relacionado em `docs/adr/`. Mudança de arquitetura exige ADR novo.
 - Não crie serviço em `services/` sem bounded context aprovado (ADR-0005). Nada de serviço vazio ou fictício.
-- Não crie infraestrutura de produção: ADR-0013 ainda está **Proposto**.
+- Infraestrutura de produção segue o ADR-0013. Criar recurso real em nuvem (custo ou dados) exige pedido explícito do responsável.
 
 ## Builds independentes
 

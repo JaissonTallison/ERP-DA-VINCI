@@ -1,6 +1,6 @@
 # ADR-0023: Governance como dono de papéis, atribuições e segregação de funções
 
-- Estado: Proposto
+- Estado: Aceito
 - Data: 2026-11-04
 - Decisores: responsável pelo produto
 
