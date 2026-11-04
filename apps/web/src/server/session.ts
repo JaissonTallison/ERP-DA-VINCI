@@ -1,6 +1,7 @@
 import 'server-only';
 import { createHash, randomBytes } from 'node:crypto';
 import { cookies } from 'next/headers';
+import { cache } from 'react';
 import * as client from 'openid-client';
 import type { TenantClaim } from './claims';
 import { realmRoles } from './claims';
@@ -52,11 +53,14 @@ export async function destroySession(sid: string): Promise<Session | null> {
   return raw ? (JSON.parse(raw) as Session) : null;
 }
 
-/** Sessão do navegador atual, renovando o access token se estiver perto de expirar. */
-export async function currentSession(): Promise<Session | null> {
+/**
+ * Sessão do navegador atual, renovando o access token se estiver perto de expirar.
+ * Memorizada por requisição: layout e página leem o Redis uma vez só.
+ */
+export const currentSession = cache(async (): Promise<Session | null> => {
   const sid = (await cookies()).get(SESSION_COOKIE)?.value;
   return sid ? loadSession(sid) : null;
-}
+});
 
 async function loadSession(sid: string): Promise<Session | null> {
   const env = serverEnv();

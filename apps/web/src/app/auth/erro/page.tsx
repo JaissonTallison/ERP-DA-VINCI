@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { TopBar } from '@/components/top-bar';
+import { TopBar } from '@/components/layout/top-bar';
+import { buttonClasses } from '@/components/ui/button';
 
 export const metadata: Metadata = { title: 'Acesso não liberado' };
 
@@ -38,10 +39,7 @@ export default async function AuthErrorPage({
         <section className="max-w-xl rounded-md border border-border bg-surface p-5 shadow-card">
           <h1 className="text-xl font-bold text-brand">{message.title}</h1>
           <p className="mt-2 text-text-muted">{message.detail}</p>
-          <a
-            href="/auth/login?prompt=login"
-            className="mt-5 inline-flex h-field items-center rounded-md bg-primary px-4 text-sm font-semibold text-surface hover:bg-primary-hover"
-          >
+          <a href="/auth/login?prompt=login" className={`mt-5 ${buttonClasses('primary')}`}>
             Entrar com outra conta
           </a>
         </section>
