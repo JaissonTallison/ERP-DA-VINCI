@@ -36,9 +36,6 @@ export default async function HomePage() {
           ))}
         </dl>
       </section>
-      <p className="mt-6 text-sm text-text-muted">
-        Nenhum módulo de negócio está disponível nesta fase.
-      </p>
     </>
   );
 }

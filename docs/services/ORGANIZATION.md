@@ -2,7 +2,7 @@
 
 Serviço do contexto **Organization Management** (Data Plane): estrutura corporativa do cliente. Desenho completo em [docs/domains/organization](../domains/organization/ORGANIZATION_DOMAIN_MODEL.md); decisões nos ADRs 0017 a 0022.
 
-## O que já existe (etapas 2 a 4)
+## O que já existe (etapas 2 a 8)
 
 | Recurso | Situação |
 | --- | --- |
@@ -12,15 +12,19 @@ Serviço do contexto **Organization Management** (Data Plane): estrutura corpora
 | Tipos de unidade | Catálogo por tenant (diretoria, departamento…) com nome multilíngue e regras de aninhamento (quais tipos podem ser pai) |
 | Unidades organizacionais | Criar, listar, consultar, alterar, desativar, reativar, encerrar (só sem filhos a partir da data). Podem apontar para entidade jurídica e estabelecimento coerentes; entidade e estabelecimento só encerram sem unidade aberta |
 | Estruturas e hierarquia | Várias estruturas por tenant (gerencial, funcional…); posição com vigência, mover e retirar com data (inclusive futura), sem ciclo, sem sobreposição e até 64 níveis. Consultas `roots`, `children`, `subtree` (até 50 mil nós, com `truncated`) e `ancestors` com `asOf` |
+| Reorganizações | Rascunho com passos (mover, retirar, renomear, encerrar unidade, trocar responsável de centro de custo), simulação com prévia da árvore, envio, aprovação por outra pessoa (aplica tudo numa transação), rejeição e cancelamento |
+| Centros de custo | Por entidade, `POSTABLE` ou `GROUP`, hierarquia de totalização com vigência, unidade responsável, bloqueio e encerramento |
+| Participações societárias | Partes externas (documento cifrado), participações com vigência (soma ≤ 100%, sem ciclo), participações diretas, organograma com participação efetiva e controlador final |
+| Histórico | Mudanças por registro e por período, a partir da auditoria (só administradores) |
 | Pertença ao grupo | Com vigência; consulta "em qual grupo estava em D" |
 | Identificadores fiscais | `BR_CNPJ` com dígitos verificadores (inclusive alfanumérico); `US_EIN` e `EU_VAT` só formato. Entidade brasileira ativa exige CNPJ principal vigente |
 | Projeção do tenant | Eventos do Tenant Registry; tenant não ativo deixa a estrutura somente leitura |
-| Eventos | `organization.economic-group.v1`, `organization.legal-entity.v1`, `organization.establishment.v1`, `organization.unit.v1` (outbox) |
+| Eventos | `organization.economic-group.v1`, `organization.legal-entity.v1`, `organization.establishment.v1`, `organization.unit.v1`, `organization.reorganization.v1`, `organization.cost-center.v1`, `organization.ownership.v1` (outbox) |
 | Isolamento | RLS forçado + chaves estrangeiras compostas por tenant, provados em teste pela API e direto no banco |
 | Auditoria | `audit_log` append-only (ator, correlação, antes e depois) |
 | Autorização | Provisória: `tenant-admin` escreve, `tenant-user` lê (ADR-0021) |
 
-Próximas etapas: reorganizações, centros de custo e participações ([plano](../domains/organization/ORGANIZATION_IMPLEMENTATION_PLAN.md)).
+Pendente: testes das etapas 5 a 8 e autorização definitiva (etapa 9, bloqueada pelo Governance). Ver o [plano](../domains/organization/ORGANIZATION_IMPLEMENTATION_PLAN.md).
 
 ## API e eventos
 
@@ -57,4 +61,4 @@ E, no Keycloak local já existente, inclua o escopo `organization-api` (audiênc
 
 ## Variáveis de ambiente
 
-Obrigatórias (sem valor padrão fora do perfil `local`): `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `DATABASE_MIGRATION_USERNAME`, `DATABASE_MIGRATION_PASSWORD`, `KAFKA_BOOTSTRAP_SERVERS`, `OIDC_ISSUER_URI`. Com padrão: `PORT` (5632), `KAFKA_TOPIC_REPLICAS` (1), `TRACING_SAMPLING`, endpoints OTLP.
+Obrigatórias (sem valor padrão fora do perfil `local`): `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `DATABASE_MIGRATION_USERNAME`, `DATABASE_MIGRATION_PASSWORD`, `KAFKA_BOOTSTRAP_SERVERS`, `OIDC_ISSUER_URI`, `ORGANIZATION_PII_KEY` (32 bytes em Base64, chave dos dados pessoais). Com padrão: `PORT` (5632), `KAFKA_TOPIC_REPLICAS` (1), `TRACING_SAMPLING`, endpoints OTLP.

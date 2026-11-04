@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:davinci:contracts:events:organization:v1:ownership-event",
+  "title": "Evento de participação societária (CloudEvents 1.0, modo estruturado)",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "time",
+    "datacontenttype",
+    "dataschema",
+    "subject",
+    "tenantid",
+    "correlationid",
+    "data"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "source": {
+      "const": "/data-plane/organization"
+    },
+    "type": {
+      "enum": [
+        "br.com.davinci.organization.ownership.created.v1",
+        "br.com.davinci.organization.ownership.ended.v1"
+      ]
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "dataschema": {
+      "const": "urn:davinci:contracts:events:organization:v1:ownership-event"
+    },
+    "subject": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "tenantid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "correlationid": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "ownershipInterestId",
+        "tenantId",
+        "ownedLegalEntityId",
+        "holderType",
+        "holderId",
+        "capitalPercentage",
+        "votingPercentage",
+        "shareClass",
+        "validFrom",
+        "validTo",
+        "effectiveOn"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ownershipInterestId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "tenantId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "ownedLegalEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "holderType": {
+          "enum": ["LEGAL_ENTITY", "EXTERNAL_PARTY"]
+        },
+        "holderId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "capitalPercentage": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 100
+        },
+        "votingPercentage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "shareClass": {
+          "type": ["string", "null"]
+        },
+        "validFrom": {
+          "type": "string",
+          "format": "date"
+        },
+        "validTo": {
+          "type": ["string", "null"],
+          "format": "date"
+        },
+        "effectiveOn": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    }
+  }
+}

@@ -40,6 +40,30 @@ channels:
         payload:
           schemaFormat: application/schema+json;version=draft-2020-12
           schema: { $ref: './unit-event.schema.json' }
+  reorganization:
+    address: organization.reorganization.v1
+    messages:
+      reorganizationEvent:
+        contentType: application/cloudevents+json
+        payload:
+          schemaFormat: application/schema+json;version=draft-2020-12
+          schema: { $ref: './reorganization-event.schema.json' }
+  costCenter:
+    address: organization.cost-center.v1
+    messages:
+      costCenterEvent:
+        contentType: application/cloudevents+json
+        payload:
+          schemaFormat: application/schema+json;version=draft-2020-12
+          schema: { $ref: './cost-center-event.schema.json' }
+  ownership:
+    address: organization.ownership.v1
+    messages:
+      ownershipEvent:
+        contentType: application/cloudevents+json
+        payload:
+          schemaFormat: application/schema+json;version=draft-2020-12
+          schema: { $ref: './ownership-event.schema.json' }
 operations:
   publishEconomicGroup:
     action: send
@@ -53,3 +77,12 @@ operations:
   publishUnit:
     action: send
     channel: { $ref: '#/channels/unit' }
+  publishReorganization:
+    action: send
+    channel: { $ref: '#/channels/reorganization' }
+  publishCostCenter:
+    action: send
+    channel: { $ref: '#/channels/costCenter' }
+  publishOwnership:
+    action: send
+    channel: { $ref: '#/channels/ownership' }

@@ -51,6 +51,21 @@ class PlatformConfig {
     }
 
     @Bean
+    NewTopic reorganizationTopic(OutboxProperties outbox) {
+        return topic(EventPublisher.topic("reorganization"), outbox);
+    }
+
+    @Bean
+    NewTopic costCenterTopic(OutboxProperties outbox) {
+        return topic(EventPublisher.topic("cost-center"), outbox);
+    }
+
+    @Bean
+    NewTopic ownershipTopic(OutboxProperties outbox) {
+        return topic(EventPublisher.topic("ownership"), outbox);
+    }
+
+    @Bean
     NewTopic tenantDeadLetterTopic(OutboxProperties outbox) {
         return topic(DEAD_LETTER_TOPIC, outbox);
     }

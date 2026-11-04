@@ -11,7 +11,15 @@ public enum Permission {
     ESTABLISHMENT_MANAGE(false),
     UNIT_READ(true),
     UNIT_MANAGE(false),
-    STRUCTURE_MOVE(false);
+    STRUCTURE_MOVE(false),
+    REORGANIZATION_READ(true),
+    REORGANIZATION_MANAGE(false),
+    REORGANIZATION_APPROVE(false),
+    COST_CENTER_READ(true),
+    COST_CENTER_MANAGE(false),
+    OWNERSHIP_READ(true),
+    OWNERSHIP_MANAGE(false),
+    HISTORY_READ(false);
 
     private final boolean readOnly;
 

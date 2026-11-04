@@ -42,6 +42,9 @@ spring:
           audiences: organization
 
 organization:
+  pii:
+    # Chave AES-256 (Base64) para dados pessoais cifrados na aplicação; em produção, do cofre de segredos.
+    key: ${ORGANIZATION_PII_KEY}
   outbox:
     poll-interval: 500
     batch-size: 100

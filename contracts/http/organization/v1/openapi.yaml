@@ -558,6 +558,385 @@ paths:
       operationId: getAncestors
       responses:
         '200': { $ref: '#/components/responses/Tree' }
+  /v1/reorganizations:
+    post:
+      operationId: createReorganization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [structureId, description, effectiveOn]
+              additionalProperties: false
+              properties:
+                structureId: { type: string, format: uuid }
+                description: { type: string, minLength: 1, maxLength: 500 }
+                effectiveOn: { type: string, format: date }
+      responses:
+        '201': { $ref: '#/components/responses/Reorganization' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listReorganizations
+      parameters:
+        - { name: structureId, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/ReorganizationStatus' } }
+      responses:
+        '200':
+          description: Reorganizações (até 500, mais recentes primeiro)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/Reorganization' } }
+  /v1/reorganizations/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getReorganization
+      responses:
+        '200': { $ref: '#/components/responses/Reorganization' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updateReorganization
+      description: Só em rascunho.
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                description: { type: string, minLength: 1, maxLength: 500 }
+                effectiveOn: { type: string, format: date }
+      responses:
+        '200': { $ref: '#/components/responses/Reorganization' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/reorganizations/{id}/steps:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: listReorganizationSteps
+      responses:
+        '200':
+          description: Passos na ordem de aplicação
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/ReorganizationSteps' } } }
+    put:
+      operationId: replaceReorganizationSteps
+      description: Substitui todos os passos do rascunho (até 1000).
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/ReorganizationSteps' } } }
+      responses:
+        '200': { $ref: '#/components/responses/Reorganization' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/reorganizations/{id}/simulation:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: simulateReorganization
+      description: Aplica os passos numa transação desfeita ao final e devolve o resultado e a árvore resultante.
+      responses:
+        '200':
+          description: Resultado da simulação
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [valid, failedStep, code, message, preview]
+                properties:
+                  valid: { type: boolean }
+                  failedStep: { type: [integer, 'null'], minimum: 0 }
+                  code: { type: [string, 'null'] }
+                  message: { type: [string, 'null'] }
+                  preview: { type: array, items: { $ref: '#/components/schemas/TreeNode' } }
+  /v1/reorganizations/{id}/{action}:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - {
+          name: action,
+          in: path,
+          required: true,
+          schema: { enum: [submit, approve, reject, cancel] },
+        }
+      - { $ref: '#/components/parameters/IfMatch' }
+    post:
+      operationId: decideReorganization
+      description: >
+        submit envia para aprovação; approve aplica todos os passos numa única transação (quem submeteu recebe 403);
+        reject e cancel encerram sem aplicar.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: { note: { type: string, maxLength: 500 } }
+      responses:
+        '200': { $ref: '#/components/responses/Reorganization' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/cost-centers:
+    post:
+      operationId: createCostCenter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [legalEntityId, code, name, kind, category]
+              additionalProperties: false
+              properties:
+                legalEntityId: { type: string, format: uuid }
+                code: { $ref: '#/components/schemas/BusinessCode' }
+                name: { type: string, minLength: 1, maxLength: 200 }
+                kind: { enum: [POSTABLE, GROUP] }
+                category: { type: string, minLength: 1, maxLength: 60 }
+                responsibleUnitId: { type: [string, 'null'], format: uuid }
+                parentId: { type: [string, 'null'], format: uuid }
+                validFrom: { type: string, format: date }
+      responses:
+        '201': { $ref: '#/components/responses/CostCenter' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/cost-centers/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getCostCenter
+      responses:
+        '200': { $ref: '#/components/responses/CostCenter' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updateCostCenter
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                name: { type: string, minLength: 1, maxLength: 200 }
+                category: { type: string, minLength: 1, maxLength: 60 }
+      responses:
+        '200': { $ref: '#/components/responses/CostCenter' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/cost-centers/{id}/responsible:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: reassignCostCenter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: { responsibleUnitId: { type: [string, 'null'], format: uuid } }
+      responses:
+        '200': { $ref: '#/components/responses/CostCenter' }
+  /v1/cost-centers/{id}/moves:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: moveCostCenter
+      description: Muda o pai na hierarquia de totalização a partir da data (pai nulo = raiz; pai sempre GROUP).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                parentId: { type: [string, 'null'], format: uuid }
+                effectiveOn: { type: string, format: date }
+      responses:
+        '200': { $ref: '#/components/responses/CostCenter' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/cost-centers/{id}/{transition}:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - { name: transition, in: path, required: true, schema: { enum: [block, unblock, close] } }
+    post:
+      operationId: transitionCostCenter
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/CostCenter' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/legal-entities/{id}/cost-centers:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: listCostCenters
+      parameters: [{ name: status, in: query, schema: { enum: [ACTIVE, BLOCKED, CLOSED] } }]
+      responses:
+        '200':
+          description: Centros de custo da entidade
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/CostCenter' } }
+  /v1/legal-entities/{id}/cost-centers/tree:
+    parameters: [{ $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/AsOf' }]
+    get:
+      operationId: costCenterTree
+      responses:
+        '200':
+          description: Centros vigentes na data, com o pai vigente (nulo = raiz)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [asOf, items]
+                properties:
+                  asOf: { type: string, format: date }
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, code, name, kind, status, parentId]
+                      properties:
+                        id: { type: string, format: uuid }
+                        code: { type: string }
+                        name: { type: string }
+                        kind: { enum: [POSTABLE, GROUP] }
+                        status: { enum: [ACTIVE, BLOCKED, CLOSED] }
+                        parentId: { type: [string, 'null'], format: uuid }
+  /v1/external-parties:
+    post:
+      operationId: createExternalParty
+      description: O documento fiscal é cifrado na gravação e não volta pela API.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, name]
+              additionalProperties: false
+              properties:
+                kind: { enum: [COMPANY, PERSON, FUND, OTHER] }
+                name: { type: string, minLength: 1, maxLength: 200 }
+                country: { type: [string, 'null'], pattern: '^[A-Z]{2}$' }
+                taxIdentifier: { type: [string, 'null'], maxLength: 40 }
+      responses:
+        '201':
+          description: Parte externa
+          content: { application/json: { schema: { $ref: '#/components/schemas/ExternalParty' } } }
+    get:
+      operationId: listExternalParties
+      responses:
+        '200':
+          description: Partes externas (até 1000, por nome)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/ExternalParty' } }
+  /v1/legal-entities/{id}/ownership:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: createOwnershipInterest
+      description: Soma das participações na entidade ≤ 100% e sem ciclo, em todas as datas a partir do início.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [capitalPercentage, votingPercentage, validFrom]
+              additionalProperties: false
+              properties:
+                ownerLegalEntityId: { type: [string, 'null'], format: uuid }
+                ownerExternalPartyId: { type: [string, 'null'], format: uuid }
+                capitalPercentage: { type: number, exclusiveMinimum: 0, maximum: 100 }
+                votingPercentage: { type: number, minimum: 0, maximum: 100 }
+                shareClass: { type: [string, 'null'], maxLength: 40 }
+                validFrom: { type: string, format: date }
+      responses:
+        '201':
+          description: Participação
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/OwnershipInterest' } } }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listOwnership
+      parameters:
+        - { name: direction, in: query, schema: { enum: [owners, holdings], default: owners } }
+        - { $ref: '#/components/parameters/AsOf' }
+      responses:
+        '200':
+          description: Participações diretas na data
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [asOf, items]
+                properties:
+                  asOf: { type: string, format: date }
+                  items: { type: array, items: { $ref: '#/components/schemas/OwnershipInterest' } }
+  /v1/ownership-interests/{id}/end:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: endOwnershipInterest
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200':
+          description: Participação encerrada
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/OwnershipInterest' } } }
+  /v1/legal-entities/{id}/ownership-chart:
+    parameters: [{ $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/AsOf' }]
+    get:
+      operationId: ownershipChart
+      description: Titulares diretos e indiretos com participação efetiva, e cadeia até o controlador final.
+      responses:
+        '200':
+          description: Organograma societário
+          content: { application/json: { schema: { $ref: '#/components/schemas/OwnershipChart' } } }
+  /v1/history/{aggregateType}/{id}:
+    parameters:
+      - { name: aggregateType, in: path, required: true, schema: { type: string } }
+      - { $ref: '#/components/parameters/Id' }
+    get:
+      operationId: history
+      description: Mudanças de um registro (até 1000), da auditoria append-only. Só administradores.
+      responses:
+        '200': { $ref: '#/components/responses/History' }
+  /v1/changes:
+    get:
+      operationId: changes
+      description: Mudanças do tenant no período [from, to), paginadas por sequência.
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: aggregateType, in: query, schema: { type: string } }
+        - { name: after, in: query, schema: { type: integer, minimum: 0 } }
+        - {
+            name: limit,
+            in: query,
+            schema: { type: integer, minimum: 1, maximum: 1000, default: 100 },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/History' }
+        '400': { $ref: '#/components/responses/Problem' }
 components:
   securitySchemes:
     bearer: { type: http, scheme: bearer, bearerFormat: JWT }
@@ -605,6 +984,15 @@ components:
     Establishment:
       description: Estabelecimento
       content: { application/json: { schema: { $ref: '#/components/schemas/Establishment' } } }
+    Reorganization:
+      description: Reorganização
+      content: { application/json: { schema: { $ref: '#/components/schemas/Reorganization' } } }
+    CostCenter:
+      description: Centro de custo
+      content: { application/json: { schema: { $ref: '#/components/schemas/CostCenter' } } }
+    History:
+      description: Entradas da auditoria
+      content: { application/json: { schema: { $ref: '#/components/schemas/HistoryPage' } } }
     Problem:
       description: Erro RFC 9457
       content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
@@ -1054,3 +1442,151 @@ components:
         status: { type: integer }
         detail: { type: string }
         code: { type: string }
+    ReorganizationStatus: { enum: [DRAFT, PENDING_APPROVAL, APPLIED, REJECTED, CANCELLED] }
+    Reorganization:
+      type: object
+      required: [id, structureId, description, effectiveOn, status, createdBy, version]
+      properties:
+        id: { type: string, format: uuid }
+        structureId: { type: string, format: uuid }
+        description: { type: string }
+        effectiveOn: { type: string, format: date }
+        status: { $ref: '#/components/schemas/ReorganizationStatus' }
+        createdBy: { type: string }
+        submittedBy: { type: [string, 'null'] }
+        decidedBy: { type: [string, 'null'] }
+        decisionNote: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    ReorganizationSteps:
+      type: object
+      required: [steps]
+      properties:
+        steps:
+          type: array
+          maxItems: 1000
+          items:
+            type: object
+            required: [operation]
+            additionalProperties: false
+            properties:
+              operation:
+                { enum: [MOVE_UNIT, REMOVE_UNIT, RENAME_UNIT, CLOSE_UNIT, REASSIGN_COST_CENTER] }
+              unitId: { type: [string, 'null'], format: uuid }
+              parentUnitId: { type: [string, 'null'], format: uuid }
+              name: { type: [string, 'null'], maxLength: 200 }
+              costCenterId: { type: [string, 'null'], format: uuid }
+              responsibleUnitId: { type: [string, 'null'], format: uuid }
+    TreeNode:
+      type: object
+      properties:
+        unitId: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        unitTypeCode: { type: string }
+        status: { type: string }
+        parentUnitId: { type: [string, 'null'], format: uuid }
+        depth: { type: integer, minimum: 0 }
+        hasChildren: { type: boolean }
+    CostCenter:
+      type: object
+      required: [id, legalEntityId, code, name, kind, category, status, validFrom, version]
+      properties:
+        id: { type: string, format: uuid }
+        legalEntityId: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        kind: { enum: [POSTABLE, GROUP] }
+        category: { type: string }
+        responsibleUnitId: { type: [string, 'null'], format: uuid }
+        status: { enum: [ACTIVE, BLOCKED, CLOSED] }
+        validFrom: { type: string, format: date }
+        closedOn: { type: [string, 'null'], format: date }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    ExternalParty:
+      type: object
+      required: [id, kind, name, hasTaxIdentifier]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { enum: [COMPANY, PERSON, FUND, OTHER] }
+        name: { type: string }
+        country: { type: [string, 'null'] }
+        hasTaxIdentifier: { type: boolean }
+    OwnershipInterest:
+      type: object
+      required:
+        [
+          id,
+          ownedLegalEntityId,
+          holderType,
+          holderId,
+          capitalPercentage,
+          votingPercentage,
+          validFrom,
+        ]
+      properties:
+        id: { type: string, format: uuid }
+        ownedLegalEntityId: { type: string, format: uuid }
+        ownedName: { type: string }
+        holderType: { enum: [LEGAL_ENTITY, EXTERNAL_PARTY] }
+        holderId: { type: string, format: uuid }
+        holderName: { type: string }
+        capitalPercentage: { type: number }
+        votingPercentage: { type: number }
+        shareClass: { type: [string, 'null'] }
+        validFrom: { type: string, format: date }
+        validTo: { type: [string, 'null'], format: date }
+    Holder:
+      type: object
+      required: [holderType, holderId, name]
+      properties:
+        holderType: { enum: [LEGAL_ENTITY, EXTERNAL_PARTY] }
+        holderId: { type: string, format: uuid }
+        name: { type: string }
+    OwnershipChart:
+      type: object
+      required: [asOf, legalEntityId, name, holders, edges, controlChain, ultimateController]
+      properties:
+        asOf: { type: string, format: date }
+        legalEntityId: { type: string, format: uuid }
+        name: { type: string }
+        holders:
+          type: array
+          items:
+            type: object
+            required: [holderType, holderId, name, depth, effectiveCapital]
+            properties:
+              holderType: { enum: [LEGAL_ENTITY, EXTERNAL_PARTY] }
+              holderId: { type: string, format: uuid }
+              name: { type: string }
+              depth: { type: integer, minimum: 1 }
+              effectiveCapital:
+                { type: number, description: 'Percentual efetivo no capital da entidade' }
+        edges: { type: array, items: { $ref: '#/components/schemas/OwnershipInterest' } }
+        controlChain: { type: array, items: { $ref: '#/components/schemas/Holder' } }
+        ultimateController:
+          oneOf: [{ $ref: '#/components/schemas/Holder' }, { type: 'null' }]
+    HistoryPage:
+      type: object
+      required: [items, nextAfter]
+      properties:
+        nextAfter: { type: [integer, 'null'] }
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              [sequence, aggregateType, aggregateId, action, actor, correlationId, occurredAt]
+            properties:
+              sequence: { type: integer }
+              aggregateType: { type: string }
+              aggregateId: { type: string, format: uuid }
+              action: { type: string }
+              actor: { type: string }
+              correlationId: { type: string }
+              occurredAt: { type: string, format: date-time }
+              before: { type: [object, 'null'] }
+              after: { type: [object, 'null'] }
