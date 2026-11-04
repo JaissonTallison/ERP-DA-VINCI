@@ -22,7 +22,7 @@ Navegador ──cookie httpOnly──▶ apps/web (BFF) ──OIDC Authorization
 - **Idempotente por versão:** cada evento traz o estado completo do tenant; eventos com versão menor ou igual à aplicada são descartados. A tabela `tenant_organization` guarda a versão aplicada.
 - **Falhas:**
   - Erros transitórios (Keycloak fora do ar) são repetidos 5 vezes, com 2 s de intervalo.
-  - Mensagens fora do contrato, ou conflito de alias com organização de outro tenant, vão direto para a dead letter `tenant-registry.tenant.v1-dlt`, sem travar a fila.
+  - Mensagens fora do contrato, ou conflito de alias com organização de outro tenant, vão direto para a dead letter `tenant-registry.tenant.v1.identity-dlt`, sem travar a fila.
 - **Menor privilégio:** a conta de serviço `identity-service` só tem `manage-organizations`, `view-organizations` e `query-organizations`. Não lê nem altera usuários.
 - Sem API pública por enquanto; expõe só os probes de saúde.
 

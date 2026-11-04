@@ -143,7 +143,7 @@ class IdentitySyncIT {
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
                 StringDeserializer.class);
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config)) {
-            consumer.subscribe(List.of("tenant-registry.tenant.v1-dlt"));
+            consumer.subscribe(List.of("tenant-registry.tenant.v1.identity-dlt"));
             ConsumerRecord<String, String> dead = await(() -> {
                 for (ConsumerRecord<String, String> record : consumer.poll(Duration.ofMillis(250))) {
                     if (key.equals(record.key())) {

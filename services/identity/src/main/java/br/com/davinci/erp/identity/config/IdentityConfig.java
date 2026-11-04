@@ -7,6 +7,7 @@ import br.com.davinci.erp.identity.keycloak.OrganizationConflictException;
 import br.com.davinci.erp.identity.tenant.InvalidTenantEventException;
 import java.time.Clock;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.common.TopicPartition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -29,7 +30,11 @@ import org.springframework.web.client.RestClient;
 @Configuration(proxyBeanMethods = false)
 class IdentityConfig {
 
-    static final String DEAD_LETTER_TOPIC = "tenant-registry.tenant.v1-dlt";
+    /**
+     * Dead letter própria deste consumidor ({@code <tópico>.<grupo>-dlt}): falhas de serviços diferentes no mesmo
+     * tópico de origem não se misturam.
+     */
+    static final String DEAD_LETTER_TOPIC = "tenant-registry.tenant.v1.identity-dlt";
 
     /** Estático: roda antes dos demais beans (e da conexão com o banco). */
     @Bean
@@ -81,7 +86,8 @@ class IdentityConfig {
     @Bean
     DefaultErrorHandler kafkaErrorHandler(KafkaOperations<?, ?> kafka, ConsumerProperties consumer) {
         var handler = new DefaultErrorHandler(
-                new DeadLetterPublishingRecoverer(kafka),
+                new DeadLetterPublishingRecoverer(
+                        kafka, (record, exception) -> new TopicPartition(DEAD_LETTER_TOPIC, record.partition())),
                 new FixedBackOff(consumer.retryInterval().toMillis(), consumer.retryAttempts()));
         handler.addNotRetryableExceptions(InvalidTenantEventException.class, OrganizationConflictException.class);
         return handler;
