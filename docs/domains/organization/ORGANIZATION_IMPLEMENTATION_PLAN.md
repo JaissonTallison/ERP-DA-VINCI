@@ -8,7 +8,9 @@ Cada etapa termina com: contratos (OpenAPI e JSON Schema) escritos antes do cód
 
 Documentos ORGANIZATION_* e ADRs 0017 a 0022. **Saída:** aprovação do desenho e dos pontos da seção "Aprovações necessárias".
 
-## Etapa 2 — Esqueleto do serviço, tenant e entidades jurídicas
+## Etapa 2 — Esqueleto do serviço, tenant e entidades jurídicas ✔ concluída (2026-11-03)
+
+> Entregue e validado: 59 testes (isolamento entre tenants pela API e direto no banco, contratos, dead letter) e teste ponta a ponta com token real do Keycloak (inclusive MFA do administrador). Ver [docs/services/ORGANIZATION.md](../../services/ORGANIZATION.md). Pendente para a etapa 8: repasse do token pelo BFF.
 
 | Entrega                             | Detalhe                                                                                                                          |
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |

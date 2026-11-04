@@ -349,6 +349,8 @@ Para telas com milhares de nós, a API entrega **por nível** (`children` de um 
 
 ## 7. Migrações e operação
 
+- **Implementado (etapa 2):** `V1__organization_corporate.sql` com tenant, grupos, entidades, pertença com vigência, identificadores fiscais, idempotência, auditoria e outbox. Função `current_tenant()` usada por todas as políticas. Exceção às permissões: `DELETE` em `legal_entity_group_assignment`, só para corrigir uma mudança de grupo no mesmo dia em que começava.
+
 - Flyway no próprio serviço, executado com o papel `organization_owner`. A aplicação usa `organization_app`.
 - `btree_gist` é extensão oficial (contrib) do PostgreSQL, presente na imagem `postgres:18.6`; criada na primeira migração.
 - Índices de vigência: `(tenant_id, <chave>, valid_from)` e índices parciais `WHERE valid_to IS NULL` para "vigente agora", caso as medições indiquem.

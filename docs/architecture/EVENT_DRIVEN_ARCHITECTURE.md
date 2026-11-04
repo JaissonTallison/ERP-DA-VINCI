@@ -31,20 +31,23 @@ Envelope e dados na mesma mensagem JSON (`application/cloudevents+json`):
 
 ## Tópicos
 
-| Regra                | Detalhe                                                                      |
-| -------------------- | ---------------------------------------------------------------------------- |
-| Nome                 | `<contexto>.<agregado>.v<N>` (ex. `tenant-registry.tenant.v1`)               |
-| Dono                 | O serviço produtor declara o tópico; a auto-criação está desligada no broker |
-| Chave                | Id do agregado: garante ordem por agregado (e por tenant)                    |
-| Partições e réplicas | 6 partições; réplicas 1 no local e 3 em produção (`min.insync.replicas=2`)   |
-| Dead letter          | `<tópico>-dlt`, por consumidor, com as mesmas partições do tópico de origem  |
+| Regra                | Detalhe                                                                                                                                                                           |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nome                 | `<contexto>.<agregado>.v<N>` (ex. `tenant-registry.tenant.v1`)                                                                                                                    |
+| Dono                 | O serviço produtor declara o tópico; a auto-criação está desligada no broker                                                                                                      |
+| Chave                | Id do agregado: garante ordem por agregado (e por tenant)                                                                                                                         |
+| Partições e réplicas | 6 partições; réplicas 1 no local e 3 em produção (`min.insync.replicas=2`)                                                                                                        |
+| Dead letter          | `<tópico>.<grupo-consumidor>-dlt` (ex.: `tenant-registry.tenant.v1.identity-dlt`), com as mesmas partições do tópico de origem: falhas de consumidores diferentes não se misturam |
 
 ### Catálogo atual
 
-| Tópico                          | Produtor          | Consumidores | Contrato                               |
-| ------------------------------- | ----------------- | ------------ | -------------------------------------- |
-| `tenant-registry.tenant.v1`     | Tenant Registry   | Identity     | `contracts/events/tenant-registry/v1/` |
-| `tenant-registry.tenant.v1-dlt` | Identity (falhas) | Operação     | Mensagem original, sem transformação   |
+| Tópico                                       | Produtor              | Consumidores                                      | Contrato                               |
+| -------------------------------------------- | --------------------- | ------------------------------------------------- | -------------------------------------- |
+| `tenant-registry.tenant.v1`                  | Tenant Registry       | Identity, Organization                            | `contracts/events/tenant-registry/v1/` |
+| `tenant-registry.tenant.v1.identity-dlt`     | Identity (falhas)     | Operação                                          | Mensagem original, sem transformação   |
+| `tenant-registry.tenant.v1.organization-dlt` | Organization (falhas) | Operação                                          | Mensagem original, sem transformação   |
+| `organization.economic-group.v1`             | Organization          | Futuros (Accounting, Finance, Analytics)          | `contracts/events/organization/v1/`    |
+| `organization.legal-entity.v1`               | Organization          | Futuros (Accounting, Finance, Tax, HR, Analytics) | `contracts/events/organization/v1/`    |
 
 ## Garantias do produtor: Transactional Outbox
 

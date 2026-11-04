@@ -26,6 +26,7 @@
 
 - [Tenant Registry](services/TENANT_REGISTRY.md)
 - [Identity](services/IDENTITY.md): organizações no Keycloak e login do frontend
+- [Organization](services/ORGANIZATION.md): grupos econômicos e entidades jurídicas
 
 ## Domínios
 

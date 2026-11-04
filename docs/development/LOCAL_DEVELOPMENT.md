@@ -48,6 +48,7 @@ Antes de reservar uma porta nova, confira se está livre: `ss -ltn "( sport = :5
 | —               | Frontend (`pnpm dev`)                                | 5620                                       |                                                                                      |
 | —               | Tenant Registry                                      | 5630                                       |                                                                                      |
 | —               | Identity                                             | 5631                                       |                                                                                      |
+| —               | Organization                                         | 5632                                       |                                                                                      |
 
 ```bash
 docker compose --profile identity --profile observability up -d   # perfis específicos

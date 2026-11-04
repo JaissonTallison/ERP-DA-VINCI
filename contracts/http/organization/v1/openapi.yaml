@@ -1,0 +1,449 @@
+openapi: 3.1.0
+info:
+  title: Organization Management API
+  version: 1.0.0
+  description: |
+    Estrutura corporativa do cliente: grupos econômicos e entidades jurídicas (etapa 2 da Fase 2).
+    O tenant vem sempre do token (claim `organization`); recurso de outro tenant responde 404.
+    Modelo de domínio: docs/domains/organization/ORGANIZATION_DOMAIN_MODEL.md.
+servers:
+  - url: http://localhost:5632
+    description: Ambiente local
+security:
+  - bearer: []
+paths:
+  /v1/economic-groups:
+    post:
+      operationId: createEconomicGroup
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/json:
+              { schema: { $ref: '#/components/schemas/CreateEconomicGroupRequest' } },
+          }
+      responses:
+        '201': { $ref: '#/components/responses/EconomicGroup' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listEconomicGroups
+      parameters:
+        - { name: status, in: query, schema: { enum: [ACTIVE, CLOSED] } }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Cursor' }
+      responses:
+        '200':
+          description: Página de grupos
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/EconomicGroupPage' } } }
+  /v1/economic-groups/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getEconomicGroup
+      responses:
+        '200': { $ref: '#/components/responses/EconomicGroup' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updateEconomicGroup
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/merge-patch+json:
+              { schema: { $ref: '#/components/schemas/UpdateEconomicGroupRequest' } },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/EconomicGroup' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/economic-groups/{id}/close:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: closeEconomicGroup
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/EconomicGroup' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/economic-groups/{id}/legal-entities:
+    parameters: [{ $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/AsOf' }]
+    get:
+      operationId: listGroupLegalEntities
+      responses:
+        '200':
+          description: Entidades do grupo na data
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/LegalEntityPage' } } }
+  /v1/legal-entities:
+    post:
+      operationId: createLegalEntity
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/json: { schema: { $ref: '#/components/schemas/CreateLegalEntityRequest' } },
+          }
+      responses:
+        '201': { $ref: '#/components/responses/LegalEntity' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listLegalEntities
+      parameters:
+        - { name: country, in: query, schema: { type: string, pattern: '^[A-Z]{2}$' } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/LegalEntityStatus' } }
+        - { name: economicGroupId, in: query, schema: { type: string, format: uuid } }
+        - { name: q, in: query, schema: { type: string, maxLength: 100 } }
+        - { $ref: '#/components/parameters/AsOf' }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Cursor' }
+      responses:
+        '200':
+          description: Página de entidades jurídicas
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/LegalEntityPage' } } }
+  /v1/legal-entities/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/AsOf' }]
+    get:
+      operationId: getLegalEntity
+      responses:
+        '200': { $ref: '#/components/responses/LegalEntity' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updateLegalEntity
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/merge-patch+json:
+              { schema: { $ref: '#/components/schemas/UpdateLegalEntityRequest' } },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/LegalEntity' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/legal-entities/{id}/{transition}:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - {
+          name: transition,
+          in: path,
+          required: true,
+          schema: { enum: [activate, suspend, reactivate, close] },
+        }
+    post:
+      operationId: transitionLegalEntity
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/LegalEntity' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/legal-entities/{id}/economic-group:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    put:
+      operationId: assignEconomicGroup
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/GroupAssignmentRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/LegalEntity' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/legal-entities/{id}/tax-identifiers:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: addTaxIdentifier
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/TaxIdentifierRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/LegalEntity' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/legal-entities/{id}/tax-identifiers/{taxIdentifierId}/end:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - { name: taxIdentifierId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: endTaxIdentifier
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/LegalEntity' }
+        '404': { $ref: '#/components/responses/Problem' }
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    AsOf:
+      {
+        name: asOf,
+        in: query,
+        schema: { type: string, format: date },
+        description: 'Data de referência; padrão: hoje no fuso da entidade',
+      }
+    Limit:
+      { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+    Cursor: { name: cursor, in: query, schema: { type: string } }
+    IdempotencyKey:
+      {
+        name: Idempotency-Key,
+        in: header,
+        required: true,
+        schema: { type: string, minLength: 1, maxLength: 100 },
+      }
+    IfMatch:
+      {
+        name: If-Match,
+        in: header,
+        required: true,
+        schema: { type: string },
+        description: 'Versão atual, como devolvida no ETag',
+      }
+  responses:
+    EconomicGroup:
+      description: Grupo econômico
+      content: { application/json: { schema: { $ref: '#/components/schemas/EconomicGroup' } } }
+    LegalEntity:
+      description: Entidade jurídica
+      content: { application/json: { schema: { $ref: '#/components/schemas/LegalEntity' } } }
+    Problem:
+      description: Erro RFC 9457
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+  schemas:
+    BusinessCode: { type: string, pattern: '^[A-Z0-9][A-Z0-9._-]{0,39}$' }
+    CountryCode: { type: string, pattern: '^[A-Z]{2}$' }
+    CurrencyCode: { type: string, pattern: '^[A-Z]{3}$' }
+    LegalEntityStatus: { enum: [PLANNED, ACTIVE, SUSPENDED, CLOSED] }
+    PostalAddress:
+      type: object
+      required: [country, addressLines, locality]
+      additionalProperties: false
+      properties:
+        country: { $ref: '#/components/schemas/CountryCode' }
+        addressLines:
+          {
+            type: array,
+            minItems: 1,
+            maxItems: 4,
+            items: { type: string, minLength: 1, maxLength: 200 },
+          }
+        locality: { type: string, minLength: 1, maxLength: 120 }
+        administrativeArea: { type: [string, 'null'], maxLength: 120 }
+        postalCode: { type: [string, 'null'], maxLength: 20 }
+    CreateEconomicGroupRequest:
+      type: object
+      required: [code, name, referenceCurrency, referenceTimezone]
+      additionalProperties: false
+      properties:
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        referenceCurrency: { $ref: '#/components/schemas/CurrencyCode' }
+        referenceTimezone: { type: string, examples: [America/Sao_Paulo] }
+    UpdateEconomicGroupRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        referenceCurrency: { $ref: '#/components/schemas/CurrencyCode' }
+        referenceTimezone: { type: string }
+    EconomicGroup:
+      type: object
+      required:
+        [
+          id,
+          code,
+          name,
+          referenceCurrency,
+          referenceTimezone,
+          status,
+          createdAt,
+          updatedAt,
+          version,
+        ]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string }
+        referenceCurrency: { $ref: '#/components/schemas/CurrencyCode' }
+        referenceTimezone: { type: string }
+        status: { enum: [ACTIVE, CLOSED] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    EconomicGroupPage:
+      type: object
+      required: [items]
+      additionalProperties: false
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/EconomicGroup' } }
+        nextCursor: { type: [string, 'null'] }
+    TaxIdentifierRequest:
+      type: object
+      required: [scheme, value]
+      additionalProperties: false
+      properties:
+        scheme: { type: string, examples: [BR_CNPJ, US_EIN] }
+        value: { type: string, minLength: 1, maxLength: 40 }
+        primary: { type: boolean, default: false }
+        validFrom: { type: string, format: date }
+    TaxIdentifier:
+      type: object
+      required: [id, scheme, value, primary, validFrom, validTo]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        scheme: { type: string }
+        value: { type: string, description: Normalizado }
+        primary: { type: boolean }
+        validFrom: { type: string, format: date }
+        validTo: { type: [string, 'null'], format: date }
+    CreateLegalEntityRequest:
+      type: object
+      required:
+        [code, legalName, country, functionalCurrency, timezone, defaultLocale, registeredAddress]
+      additionalProperties: false
+      properties:
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        legalName: { type: string, minLength: 1, maxLength: 200 }
+        tradeName: { type: string, maxLength: 200 }
+        country: { $ref: '#/components/schemas/CountryCode' }
+        subdivision: { type: string, pattern: '^[A-Z]{2}-[A-Z0-9]{1,3}$' }
+        legalForm: { type: string, maxLength: 40 }
+        functionalCurrency: { $ref: '#/components/schemas/CurrencyCode' }
+        timezone: { type: string }
+        defaultLocale: { type: string, examples: [pt-BR] }
+        fiscalYearStartMonth: { type: integer, minimum: 1, maximum: 12, default: 1 }
+        registeredAddress: { $ref: '#/components/schemas/PostalAddress' }
+        taxIdentifiers:
+          {
+            type: array,
+            maxItems: 10,
+            items: { $ref: '#/components/schemas/TaxIdentifierRequest' },
+          }
+        economicGroupId: { type: string, format: uuid }
+        status: { enum: [PLANNED, ACTIVE], default: PLANNED }
+        effectiveOn:
+          {
+            type: string,
+            format: date,
+            description: 'Data de constituição ou de início no grupo; padrão: hoje',
+          }
+    UpdateLegalEntityRequest:
+      type: object
+      additionalProperties: false
+      description: Moeda funcional e país só mudam enquanto PLANNED.
+      properties:
+        legalName: { type: string, minLength: 1, maxLength: 200 }
+        tradeName: { type: [string, 'null'], maxLength: 200 }
+        legalForm: { type: [string, 'null'], maxLength: 40 }
+        functionalCurrency: { $ref: '#/components/schemas/CurrencyCode' }
+        timezone: { type: string }
+        defaultLocale: { type: string }
+        fiscalYearStartMonth: { type: integer, minimum: 1, maximum: 12 }
+        registeredAddress: { $ref: '#/components/schemas/PostalAddress' }
+    LifecycleRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        effectiveOn: { type: string, format: date, description: 'Padrão: hoje no fuso da entidade' }
+        reason: { type: string, maxLength: 500 }
+    GroupAssignmentRequest:
+      type: object
+      required: [economicGroupId, effectiveOn]
+      additionalProperties: false
+      properties:
+        economicGroupId:
+          { type: [string, 'null'], format: uuid, description: 'null retira a entidade do grupo' }
+        effectiveOn: { type: string, format: date }
+    LegalEntity:
+      type: object
+      required:
+        [
+          id,
+          code,
+          legalName,
+          tradeName,
+          country,
+          subdivision,
+          legalForm,
+          functionalCurrency,
+          timezone,
+          defaultLocale,
+          fiscalYearStartMonth,
+          registeredAddress,
+          incorporatedOn,
+          closedOn,
+          status,
+          asOf,
+          economicGroupId,
+          groupAssignments,
+          taxIdentifiers,
+          createdAt,
+          updatedAt,
+          version,
+        ]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        legalName: { type: string }
+        tradeName: { type: [string, 'null'] }
+        country: { $ref: '#/components/schemas/CountryCode' }
+        subdivision: { type: [string, 'null'] }
+        legalForm: { type: [string, 'null'] }
+        functionalCurrency: { $ref: '#/components/schemas/CurrencyCode' }
+        timezone: { type: string }
+        defaultLocale: { type: string }
+        fiscalYearStartMonth: { type: integer }
+        registeredAddress: { $ref: '#/components/schemas/PostalAddress' }
+        incorporatedOn: { type: [string, 'null'], format: date }
+        closedOn: { type: [string, 'null'], format: date }
+        status: { $ref: '#/components/schemas/LegalEntityStatus' }
+        asOf: { type: string, format: date }
+        economicGroupId:
+          { type: [string, 'null'], format: uuid, description: Grupo vigente em asOf }
+        groupAssignments:
+          type: array
+          items:
+            type: object
+            required: [economicGroupId, validFrom, validTo]
+            additionalProperties: false
+            properties:
+              economicGroupId: { type: string, format: uuid }
+              validFrom: { type: string, format: date }
+              validTo: { type: [string, 'null'], format: date }
+        taxIdentifiers: { type: array, items: { $ref: '#/components/schemas/TaxIdentifier' } }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    LegalEntityPage:
+      type: object
+      required: [items]
+      additionalProperties: false
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/LegalEntity' } }
+        nextCursor: { type: [string, 'null'] }
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }

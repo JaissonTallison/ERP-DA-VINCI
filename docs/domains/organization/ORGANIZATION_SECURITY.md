@@ -123,7 +123,9 @@ Se a prova falhar, a alternativa é o OPA com WASM embutido.
 - Leitura de histórico exige `history.read`.
 - Exportação para o armazenamento imutável da plataforma quando o Governance existir (ADR-0012 / SECURITY_ARCHITECTURE).
 
-## 6. Pré-requisitos na fundação (etapa 2)
+## 6. Pré-requisitos na fundação
+
+Situação em 2026-11-03: itens 1 e 3 **feitos** na etapa 2; item 2 fica para a etapa 8 (telas).
 
 1. **Audiência do token:** incluir `organization` como audiência do token do `davinci-web` (escopo de cliente no realm), validada pelo serviço.
 2. **Repasse do token pelo BFF:** o BFF chama o Organization com o access token da sessão, renovado no servidor. O token nunca vai ao navegador.
