@@ -1,6 +1,6 @@
 # ADR-0019: Hierarquias por lista de adjacência com vigência
 
-- Estado: **Proposto**
+- Estado: Aceito
 - Data: 2026-11-03
 
 ## Contexto

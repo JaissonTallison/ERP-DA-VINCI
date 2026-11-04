@@ -1,6 +1,6 @@
 # ADR-0020: Vigência por data e histórico organizacional
 
-- Estado: **Proposto**
+- Estado: Aceito
 - Data: 2026-11-03
 
 ## Contexto

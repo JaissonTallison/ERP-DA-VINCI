@@ -18,17 +18,17 @@ Estados: **Proposto** (aguarda aprovação) · **Aceito** · **Substituído por 
 | [0010](0010-persistencia-poliglota.md)             | Persistência poliglota e banco por serviço                              | Aceito                                |
 | [0011](0011-observabilidade-opentelemetry.md)      | Observabilidade com OpenTelemetry e stack Grafana                       | Aceito                                |
 | [0012](0012-cadeia-de-suprimentos-de-software.md)  | Segurança da cadeia de suprimentos de software                          | Aceito                                |
-| [0013](0013-infraestrutura-de-producao.md)         | Estratégia de infraestrutura de produção                                | **Proposto**                          |
+| [0013](0013-infraestrutura-de-producao.md)         | Estratégia de infraestrutura de produção                                | Aceito                                |
 
 | [0014](0014-eventos-json-schema.md) | Eventos em JSON, validados por JSON Schema | Aceito |
 | [0015](0015-tenant-registry.md) | Desenho do Tenant Registry | Aceito |
 | [0016](0016-identidade-organizations-bff.md) | Identidade com Keycloak Organizations e login BFF | Aceito |
 
-| [0017](0017-tenant-e-grupo-economico.md) | Tenant contém grupos econômicos; não há agregado "Organization" | **Proposto** |
-| [0018](0018-organization-servico-modular.md) | Organization Management como um único serviço modular | **Proposto** |
-| [0019](0019-hierarquias-adjacencia-com-vigencia.md) | Hierarquias por lista de adjacência com vigência | **Proposto** |
-| [0020](0020-vigencia-e-historico.md) | Vigência por data e histórico organizacional | **Proposto** |
-| [0021](0021-motor-de-autorizacao.md) | Motor de autorização: Cedar embutido, condicionado a prova de conceito | **Proposto** |
-| [0022](0022-identificadores-fiscais-extensiveis.md) | Identificadores fiscais por esquema, com validadores plugáveis | **Proposto** |
+| [0017](0017-tenant-e-grupo-economico.md) | Tenant contém grupos econômicos; não há agregado "Organization" | Aceito |
+| [0018](0018-organization-servico-modular.md) | Organization Management como um único serviço modular | Aceito |
+| [0019](0019-hierarquias-adjacencia-com-vigencia.md) | Hierarquias por lista de adjacência com vigência | Aceito |
+| [0020](0020-vigencia-e-historico.md) | Vigência por data e histórico organizacional | Aceito |
+| [0021](0021-motor-de-autorizacao.md) | Motor de autorização: Cedar embutido, condicionado a prova de conceito | Aceito (condicionado à PoC) |
+| [0022](0022-identificadores-fiscais-extensiveis.md) | Identificadores fiscais por esquema, com validadores plugáveis | Aceito |
 
 Modelo: [template.md](template.md).

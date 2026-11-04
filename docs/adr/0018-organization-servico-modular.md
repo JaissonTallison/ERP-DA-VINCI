@@ -1,6 +1,6 @@
 # ADR-0018: Organization Management como um único serviço modular
 
-- Estado: **Proposto**
+- Estado: Aceito
 - Data: 2026-11-03
 
 ## Contexto

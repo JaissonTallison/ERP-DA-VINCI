@@ -1,6 +1,6 @@
 # ADR-0021: Motor de autorização — Cedar embutido, condicionado a prova de conceito
 
-- Estado: **Proposto** (decide o item "motor de políticas" em aberto no ADR-0009, após a prova de conceito)
+- Estado: Aceito, condicionado à prova de conceito (decide o item "motor de políticas" em aberto no ADR-0009)
 - Data: 2026-11-03
 
 ## Contexto

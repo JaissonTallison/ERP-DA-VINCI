@@ -1,6 +1,6 @@
 # ADR-0017: Tenant contém grupos econômicos; não há agregado "Organization"
 
-- Estado: **Proposto**
+- Estado: Aceito
 - Data: 2026-11-03
 
 ## Contexto

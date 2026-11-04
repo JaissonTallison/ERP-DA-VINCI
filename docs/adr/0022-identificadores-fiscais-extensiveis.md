@@ -1,6 +1,6 @@
 # ADR-0022: Identificadores fiscais por esquema, com validadores plugáveis
 
-- Estado: **Proposto**
+- Estado: Aceito
 - Data: 2026-11-03
 
 ## Contexto
