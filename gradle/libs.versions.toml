@@ -2,7 +2,7 @@
 [versions]
 java = "25"
 spring-boot = "4.1.2"
-jspecify = "1.0.0"
+jspecify = "1.0.1"
 spotless = "8.11.0"
 palantir-java-format = "2.103.0"
 cyclonedx = "3.5.1"
