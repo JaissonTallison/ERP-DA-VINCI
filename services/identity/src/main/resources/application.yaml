@@ -1,4 +1,5 @@
-# Padrões para o ambiente local (compose.yaml, portas 5600–5699). Em outros ambientes, sobrescreva por variável.
+# Configuração base. Credenciais e endereços de infraestrutura NÃO têm valor padrão: sem a variável, o serviço não sobe.
+# Valores de desenvolvimento ficam em application-local.yaml (perfil `local`, ativado pelo bootRun e pelos testes).
 server:
   port: ${PORT:5631}
   shutdown: graceful
@@ -10,11 +11,11 @@ spring:
     virtual:
       enabled: true
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5600/identity}
-    username: ${DATABASE_USERNAME:identity}
-    password: ${DATABASE_PASSWORD:identity_dev}
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:5602}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     consumer:
       group-id: identity
       # Um grupo novo processa todo o histórico: a projeção é reconstruível a partir dos eventos.
@@ -28,15 +29,15 @@ spring:
           keycloak-admin:
             provider: keycloak
             client-id: ${KEYCLOAK_CLIENT_ID:identity-service}
-            client-secret: ${KEYCLOAK_CLIENT_SECRET:identity_service_dev_secret}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET}
             authorization-grant-type: client_credentials
         provider:
           keycloak:
-            token-uri: ${KEYCLOAK_URL:http://localhost:5607}/realms/${KEYCLOAK_REALM:davinci}/protocol/openid-connect/token
+            token-uri: ${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM:davinci}/protocol/openid-connect/token
 
 identity:
   keycloak:
-    base-url: ${KEYCLOAK_URL:http://localhost:5607}
+    base-url: ${KEYCLOAK_URL}
     realm: ${KEYCLOAK_REALM:davinci}
     client-registration-id: keycloak-admin
   consumer:

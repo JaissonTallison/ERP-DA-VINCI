@@ -1,0 +1,22 @@
+# Perfil `local`: aponta para o compose.yaml (portas 5600–5699). Credenciais SOMENTE de desenvolvimento.
+# Ativado pelo `./gradlew :identity:bootRun` e pelos testes; nunca em outro ambiente.
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5600/identity
+    username: identity
+    password: identity_dev
+  kafka:
+    bootstrap-servers: localhost:5602
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak-admin:
+            client-secret: identity_service_dev_secret
+        provider:
+          keycloak:
+            token-uri: http://localhost:5607/realms/davinci/protocol/openid-connect/token
+
+identity:
+  keycloak:
+    base-url: http://localhost:5607

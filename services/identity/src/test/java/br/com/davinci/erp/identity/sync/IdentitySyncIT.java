@@ -24,6 +24,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -47,6 +48,7 @@ import tools.jackson.databind.JsonNode;
             "management.tracing.export.enabled=false",
             "management.otlp.metrics.export.enabled=false"
         })
+@ActiveProfiles("local")
 class IdentitySyncIT {
 
     @ServiceConnection

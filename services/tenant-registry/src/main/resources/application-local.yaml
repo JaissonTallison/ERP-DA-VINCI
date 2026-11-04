@@ -1,0 +1,14 @@
+# Perfil `local`: aponta para o compose.yaml (portas 5600–5699). Credenciais SOMENTE de desenvolvimento.
+# Ativado pelo `./gradlew :tenant-registry:bootRun` e pelos testes; nunca em outro ambiente.
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5600/tenant_registry
+    username: tenant_registry
+    password: tenant_registry_dev
+  kafka:
+    bootstrap-servers: localhost:5602
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:5607/realms/platform

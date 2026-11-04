@@ -13,6 +13,7 @@ on:
       - .npmrc
       - .prettierrc.json
       - .prettierignore
+      - osv-scanner.toml
       - .github/workflows/frontend.yml
   push:
     branches: [main]
@@ -48,3 +49,16 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+
+  vulnerabilities:
+    name: vulnerabilidades (pnpm-lock)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Exceções justificadas e com prazo em osv-scanner.toml.
+      - run: >-
+          docker run --rm -v "$PWD:/src:ro" ghcr.io/google/osv-scanner:v2.7.0
+          scan source --config /src/osv-scanner.toml --lockfile /src/pnpm-lock.yaml

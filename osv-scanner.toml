@@ -1,0 +1,9 @@
+# Exceções da varredura de vulnerabilidades (OSV-Scanner). Cada uma exige motivo e prazo:
+# vencido o prazo, a CI volta a falhar e a exceção precisa ser revista (docs/security/SECURITY_ARCHITECTURE.md).
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2027-02-01
+reason = """minimatch 3.x/10.x, só na cadeia do ESLint (ferramenta de lint, não vai para produção).
+A correção (11.x) é incompatível com o ESLint 9 exigido pelo eslint-config-next (ADR-0007).
+Rever quando o ESLint 10 for adotado."""

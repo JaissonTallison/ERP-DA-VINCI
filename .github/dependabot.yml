@@ -21,6 +21,11 @@ updates:
         versions: ['>=7']
       - dependency-name: eslint
         versions: ['>=10']
+      - dependency-name: '@eslint/js'
+        versions: ['>=10']
+      # Tipos acompanham o Node em uso (24 LTS, .nvmrc).
+      - dependency-name: '@types/node'
+        versions: ['>=25']
 
   - package-ecosystem: gradle
     directory: /

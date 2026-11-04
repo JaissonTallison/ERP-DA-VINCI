@@ -7,6 +7,8 @@ on:
       - libs/java/**
       - services/**
       - contracts/**
+      - infra/local/keycloak/**
+      - osv-scanner.toml
       - gradle/**
       - gradlew
       - gradlew.bat
@@ -40,3 +42,10 @@ jobs:
       # Valida o checksum do gradle-wrapper.jar e configura cache.
       - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
       - run: ./gradlew build --no-daemon
+      # O build gera o SBOM CycloneDX de cada serviço; a varredura cobre as dependências que vão para produção.
+      - name: vulnerabilidades (SBOM dos serviços)
+        run: |
+          args=()
+          for sbom in services/*/build/reports/cyclonedx/application.cdx.json; do args+=(-L "/src/$sbom"); done
+          docker run --rm -v "$PWD:/src:ro" ghcr.io/google/osv-scanner:v2.7.0 \
+            scan source --config /src/osv-scanner.toml "${args[@]}"

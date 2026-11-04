@@ -19,6 +19,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -35,6 +36,7 @@ import tools.jackson.databind.json.JsonMapper;
             "management.tracing.export.enabled=false",
             "management.otlp.metrics.export.enabled=false"
         })
+@ActiveProfiles("local")
 @AutoConfigureMockMvc
 public abstract class IntegrationTest {
 

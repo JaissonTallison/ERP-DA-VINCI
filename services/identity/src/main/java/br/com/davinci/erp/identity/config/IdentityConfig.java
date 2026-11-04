@@ -9,6 +9,7 @@ import java.time.Clock;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaOperations;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
@@ -29,6 +30,12 @@ import org.springframework.web.client.RestClient;
 class IdentityConfig {
 
     static final String DEAD_LETTER_TOPIC = "tenant-registry.tenant.v1-dlt";
+
+    /** Estático: roda antes dos demais beans (e da conexão com o banco). */
+    @Bean
+    static RequiredSettings requiredSettings(Environment environment) {
+        return new RequiredSettings(environment);
+    }
 
     @Bean
     Clock clock() {
