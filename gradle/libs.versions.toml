@@ -10,7 +10,7 @@ json-schema-validator = "3.0.9"
 # Correções de segurança acima das versões do Spring Boot 4.1.2 (varredura OSV). Remover quando o Boot incorporar.
 opentelemetry = "1.67.0"
 snappy-java = "1.1.10.9"
-lz4-java = "1.11.4"
+lz4-java = "1.12.1"
 
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
