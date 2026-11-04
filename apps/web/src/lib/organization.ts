@@ -23,6 +23,9 @@ export async function api<T>(
   if (init?.ifMatch !== undefined) {
     headers.set('if-match', `"${init.ifMatch}"`);
   }
+  if (init?.method === 'POST') {
+    headers.set('idempotency-key', crypto.randomUUID());
+  }
   const response = await fetch(`/api/organization${path}`, { ...init, headers });
   if (!response.ok) {
     const problem = (await response.json().catch(() => ({}))) as Problem;
@@ -77,6 +80,10 @@ export type Establishment = {
   openedOn: string;
   address: { locality: string; administrativeArea: string | null };
 };
+
+export type UnitType = { id: string; code: string; name: string };
+
+export type ExternalParty = { id: string; kind: string; name: string };
 
 export type Structure = { id: string; code: string; name: string; purpose: string };
 

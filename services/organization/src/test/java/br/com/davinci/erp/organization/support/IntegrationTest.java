@@ -85,6 +85,12 @@ public abstract class IntegrationTest {
         return token(tenant, "tenant-admin");
     }
 
+    /** Administrador com outro {@code sub}, para regras de segregação de funções. */
+    protected static JwtRequestPostProcessor secondAdmin(UUID tenant) {
+        JwtAuthenticationToken authentication = authentication(tenant, "tenant-admin", "outro-admin");
+        return jwt().jwt(authentication.getToken()).authorities(authentication.getAuthorities());
+    }
+
     protected static JwtRequestPostProcessor user(UUID tenant) {
         return token(tenant, "tenant-user");
     }
@@ -96,9 +102,13 @@ public abstract class IntegrationTest {
 
     /** O mesmo usuário de {@link #user(UUID)}, para chamadas diretas aos beans, sem passar pelo MockMvc. */
     protected static JwtAuthenticationToken authentication(UUID tenant, String role) {
+        return authentication(tenant, role, "user-" + role);
+    }
+
+    private static JwtAuthenticationToken authentication(UUID tenant, String role, String subject) {
         Jwt jwt = Jwt.withTokenValue("teste")
                 .header("alg", "none")
-                .subject("user-" + role)
+                .subject(subject)
                 .claim(
                         "organization",
                         Map.of(

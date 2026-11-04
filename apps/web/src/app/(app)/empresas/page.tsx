@@ -1,8 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { CreateForm } from '@/components/org/create-form';
 import {
   Card,
   DataTable,
@@ -17,6 +18,7 @@ import { api, query, type EconomicGroup, type LegalEntity, type Page } from '@/l
 /** Grupos econômicos e entidades jurídicas, com filtro por grupo. */
 export default function EmpresasPage() {
   const router = useRouter();
+  const client = useQueryClient();
   const [groupId, setGroupId] = useState('');
   const groups = useQuery({
     queryKey: ['economic-groups'],
@@ -34,6 +36,67 @@ export default function EmpresasPage() {
   return (
     <>
       <PageHeader title="Empresas" />
+      <CreateForm
+        title="Novo grupo econômico"
+        fields={[
+          { name: 'code', label: 'Código', required: true },
+          { name: 'name', label: 'Nome', required: true },
+          { name: 'referenceCurrency', label: 'Moeda', required: true, initial: 'BRL' },
+          {
+            name: 'referenceTimezone',
+            label: 'Fuso',
+            required: true,
+            initial: 'America/Sao_Paulo',
+          },
+        ]}
+        submit={(v) => api('/v1/economic-groups', { method: 'POST', body: JSON.stringify(v) })}
+        onDone={() => client.invalidateQueries({ queryKey: ['economic-groups'] })}
+      />
+      <CreateForm
+        title="Nova entidade jurídica"
+        fields={[
+          { name: 'code', label: 'Código', required: true },
+          { name: 'legalName', label: 'Razão social', required: true },
+          { name: 'tradeName', label: 'Nome fantasia' },
+          { name: 'cnpj', label: 'CNPJ', required: true },
+          { name: 'street', label: 'Endereço', required: true },
+          { name: 'city', label: 'Cidade', required: true },
+          { name: 'state', label: 'UF', required: true },
+          { name: 'postalCode', label: 'CEP', required: true },
+          {
+            name: 'economicGroupId',
+            label: 'Grupo econômico',
+            type: 'select',
+            options: (groups.data?.items ?? []).map((g) => ({ value: g.id, label: g.name })),
+          },
+        ]}
+        submit={(v) =>
+          api('/v1/legal-entities', {
+            method: 'POST',
+            body: JSON.stringify({
+              code: v.code,
+              legalName: v.legalName,
+              tradeName: v.tradeName || null,
+              country: 'BR',
+              subdivision: `BR-${v.state}`,
+              functionalCurrency: 'BRL',
+              timezone: 'America/Sao_Paulo',
+              defaultLocale: 'pt-BR',
+              registeredAddress: {
+                country: 'BR',
+                addressLines: [v.street],
+                locality: v.city,
+                administrativeArea: v.state,
+                postalCode: v.postalCode,
+              },
+              taxIdentifiers: [{ scheme: 'BR_CNPJ', value: v.cnpj, primary: true }],
+              economicGroupId: v.economicGroupId || null,
+              status: 'ACTIVE',
+            }),
+          })
+        }
+        onDone={() => client.invalidateQueries({ queryKey: ['legal-entities'] })}
+      />
       <Filters>
         <SelectField
           label="Grupo econômico"

@@ -1,8 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState, type ReactNode } from 'react';
+import { CreateForm } from '@/components/org/create-form';
 import {
   Card,
   Filters,
@@ -24,6 +25,7 @@ export default function CentrosDeCustoPage() {
 }
 
 function CostCenters() {
+  const client = useQueryClient();
   const initial = useSearchParams().get('entidade') ?? '';
   const [entityId, setEntityId] = useState(initial);
   const [asOf, setAsOf] = useState(today());
@@ -68,6 +70,40 @@ function CostCenters() {
   return (
     <>
       <PageHeader title="Centros de custo" />
+      <CreateForm
+        title="Novo centro de custo na entidade selecionada"
+        fields={[
+          { name: 'code', label: 'Código', required: true },
+          { name: 'name', label: 'Nome', required: true },
+          {
+            name: 'kind',
+            label: 'Tipo',
+            type: 'select',
+            required: true,
+            options: [
+              { value: 'POSTABLE', label: 'Lançável' },
+              { value: 'GROUP', label: 'Totalizador' },
+            ],
+          },
+          { name: 'category', label: 'Categoria', required: true },
+          {
+            name: 'parentId',
+            label: 'Pai',
+            type: 'select',
+            options: nodes
+              .filter((n) => n.kind === 'GROUP')
+              .map((n) => ({ value: n.id, label: `${n.code} · ${n.name}` })),
+          },
+          { name: 'validFrom', label: 'Início', type: 'date', required: true, initial: today() },
+        ]}
+        submit={(v) =>
+          api('/v1/cost-centers', {
+            method: 'POST',
+            body: JSON.stringify({ ...v, legalEntityId: selected, parentId: v.parentId || null }),
+          })
+        }
+        onDone={() => client.invalidateQueries({ queryKey: ['cost-center-tree'] })}
+      />
       <Filters>
         <SelectField
           label="Entidade jurídica"

@@ -1,8 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
+import { CreateForm } from '@/components/org/create-form';
 import {
   Card,
   DataTable,
@@ -12,7 +13,14 @@ import {
   PageHeader,
   SelectField,
 } from '@/components/org/ui';
-import { api, today, type LegalEntity, type OwnershipChart, type Page } from '@/lib/organization';
+import {
+  api,
+  today,
+  type ExternalParty,
+  type LegalEntity,
+  type OwnershipChart,
+  type Page,
+} from '@/lib/organization';
 
 const PERCENT = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 });
 
@@ -26,6 +34,11 @@ export default function SocietarioPage() {
 }
 
 function Ownership() {
+  const client = useQueryClient();
+  const parties = useQuery({
+    queryKey: ['external-parties'],
+    queryFn: () => api<{ items: ExternalParty[] }>('/v1/external-parties'),
+  });
   const initial = useSearchParams().get('entidade') ?? '';
   const [entityId, setEntityId] = useState(initial);
   const [asOf, setAsOf] = useState(today());
@@ -45,6 +58,74 @@ function Ownership() {
   return (
     <>
       <PageHeader title="Organograma societário" />
+      <CreateForm
+        title="Novo titular externo"
+        fields={[
+          {
+            name: 'kind',
+            label: 'Tipo',
+            type: 'select',
+            required: true,
+            options: [
+              { value: 'PERSON', label: 'Pessoa' },
+              { value: 'COMPANY', label: 'Empresa' },
+              { value: 'FUND', label: 'Fundo' },
+              { value: 'OTHER', label: 'Outro' },
+            ],
+          },
+          { name: 'name', label: 'Nome', required: true },
+          { name: 'country', label: 'País (ISO)', initial: 'BR' },
+          { name: 'taxIdentifier', label: 'Documento (guardado cifrado)' },
+        ]}
+        submit={(v) =>
+          api('/v1/external-parties', {
+            method: 'POST',
+            body: JSON.stringify({
+              kind: v.kind,
+              name: v.name,
+              country: v.country || null,
+              taxIdentifier: v.taxIdentifier || null,
+            }),
+          })
+        }
+        onDone={() => client.invalidateQueries({ queryKey: ['external-parties'] })}
+      />
+      <CreateForm
+        title="Nova participação na entidade selecionada"
+        fields={[
+          {
+            name: 'owner',
+            label: 'Titular',
+            type: 'select',
+            required: true,
+            options: [
+              ...(entities.data?.items ?? [])
+                .filter((e) => e.id !== selected)
+                .map((e) => ({ value: `entity:${e.id}`, label: e.legalName })),
+              ...(parties.data?.items ?? []).map((p) => ({
+                value: `party:${p.id}`,
+                label: p.name,
+              })),
+            ],
+          },
+          { name: 'capitalPercentage', label: 'Capital (%)', type: 'number', required: true },
+          { name: 'votingPercentage', label: 'Votos (%)', type: 'number', required: true },
+          { name: 'validFrom', label: 'Início', type: 'date', required: true, initial: today() },
+        ]}
+        submit={(v) => {
+          const [kind, ownerId] = (v.owner ?? '').split(':');
+          return api(`/v1/legal-entities/${selected}/ownership`, {
+            method: 'POST',
+            body: JSON.stringify({
+              [kind === 'entity' ? 'ownerLegalEntityId' : 'ownerExternalPartyId']: ownerId,
+              capitalPercentage: Number(v.capitalPercentage),
+              votingPercentage: Number(v.votingPercentage),
+              validFrom: v.validFrom,
+            }),
+          });
+        }}
+        onDone={() => client.invalidateQueries({ queryKey: ['ownership-chart'] })}
+      />
       <Filters>
         <SelectField
           label="Entidade jurídica"

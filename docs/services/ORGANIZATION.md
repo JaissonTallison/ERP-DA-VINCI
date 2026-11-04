@@ -24,7 +24,7 @@ Serviço do contexto **Organization Management** (Data Plane): estrutura corpora
 | Auditoria | `audit_log` append-only (ator, correlação, antes e depois) |
 | Autorização | Provisória: `tenant-admin` escreve, `tenant-user` lê (ADR-0021) |
 
-Pendente: testes das etapas 5 a 8 e autorização definitiva (etapa 9, bloqueada pelo Governance). Ver o [plano](../domains/organization/ORGANIZATION_IMPLEMENTATION_PLAN.md).
+Pendente: autorização definitiva (etapa 9, bloqueada pelo Governance). Ver o [plano](../domains/organization/ORGANIZATION_IMPLEMENTATION_PLAN.md).
 
 ## API e eventos
 
@@ -58,6 +58,10 @@ CREATE DATABASE organization OWNER organization_owner;
 ```
 
 E, no Keycloak local já existente, inclua o escopo `organization-api` (audiência) no cliente `davinci-web` pelo console, ou recrie o realm (`docker compose down -v` apaga os dados locais).
+
+## Testes
+
+`./gradlew :organization:test` roda a suíte. O critério de tempo da subárvore roda à parte, com a máquina livre: `./gradlew :organization:performanceTest`.
 
 ## Variáveis de ambiente
 

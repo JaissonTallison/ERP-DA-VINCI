@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { PermissionsProvider } from '@/components/org/permissions';
 import { MainNav } from '@/components/layout/main-nav';
 import { TopBar } from '@/components/layout/top-bar';
 import { UserMenu } from '@/components/layout/user-menu';
@@ -20,7 +21,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         <UserMenu name={session.user.name} tenant={session.tenant.displayName} />
       </TopBar>
       <MainNav />
-      <main className="px-4 py-6 sm:px-6">{children}</main>
+      <main className="px-4 py-6 sm:px-6">
+        <PermissionsProvider canWrite={session.roles.includes('tenant-admin')}>
+          {children}
+        </PermissionsProvider>
+      </main>
     </>
   );
 }

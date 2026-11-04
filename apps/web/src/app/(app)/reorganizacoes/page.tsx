@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
+import { useCanWrite } from '@/components/org/permissions';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -18,6 +19,7 @@ import { api, today, type Page, type Reorganization, type Structure } from '@/li
 /** Reorganizações: lista e criação de rascunho. */
 export default function ReorganizacoesPage() {
   const router = useRouter();
+  const canWrite = useCanWrite();
   const client = useQueryClient();
   const structures = useQuery({
     queryKey: ['structures'],
@@ -52,39 +54,41 @@ export default function ReorganizacoesPage() {
   return (
     <>
       <PageHeader title="Reorganizações" />
-      <Card title="Nova reorganização">
-        <form onSubmit={submit} className="flex flex-wrap items-end gap-4">
-          <SelectField
-            label="Estrutura"
-            value={form.structureId}
-            onChange={(e) => setForm({ ...form, structureId: e.target.value })}
-          >
-            {structures.data?.items.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </SelectField>
-          <InputField
-            label="Descrição"
-            required
-            maxLength={500}
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-          />
-          <InputField
-            label="Vigência"
-            type="date"
-            required
-            value={form.effectiveOn}
-            onChange={(e) => setForm({ ...form, effectiveOn: e.target.value })}
-          />
-          <Button type="submit" disabled={create.isPending}>
-            Criar rascunho
-          </Button>
-        </form>
-        <Message error={create.error} />
-      </Card>
+      {canWrite ? (
+        <Card title="Nova reorganização">
+          <form onSubmit={submit} className="flex flex-wrap items-end gap-4">
+            <SelectField
+              label="Estrutura"
+              value={form.structureId}
+              onChange={(e) => setForm({ ...form, structureId: e.target.value })}
+            >
+              {structures.data?.items.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </SelectField>
+            <InputField
+              label="Descrição"
+              required
+              maxLength={500}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+            <InputField
+              label="Vigência"
+              type="date"
+              required
+              value={form.effectiveOn}
+              onChange={(e) => setForm({ ...form, effectiveOn: e.target.value })}
+            />
+            <Button type="submit" disabled={create.isPending}>
+              Criar rascunho
+            </Button>
+          </form>
+          <Message error={create.error} />
+        </Card>
+      ) : null}
       <Card title="Todas">
         <DataTable
           rows={list.data?.items ?? []}

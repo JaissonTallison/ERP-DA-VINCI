@@ -57,7 +57,7 @@ Catálogo de tipos e aninhamento, unidades com nome multilíngue, estruturas, v�
 
 ## Etapa 5 — Reorganizações ✔ concluída (2026-11-04)
 
-> Entregue sem testes automatizados novos (adiados por decisão do responsável; ver "Pendências"). Decisões de detalhe: a aprovação aplica todos os passos numa única transação; a data de vigência vale para cada passo e datas futuras viram vínculos que começam naquele dia, por isso não há agendador nem estado `SCHEDULED`; quem submete recebe 403 ao aprovar (e o banco também barra); a simulação aplica os passos numa transação desfeita e devolve a árvore resultante; passos disponíveis: mover, retirar, renomear, encerrar unidade e trocar o responsável de centro de custo (criar unidade continua no cadastro, com data de início).
+> Entregue com testes de integração, incluindo os 500 passos tudo ou nada e "quem submete não aprova". Decisões de detalhe: a aprovação aplica todos os passos numa única transação; a data de vigência vale para cada passo e datas futuras viram vínculos que começam naquele dia, por isso não há agendador nem estado `SCHEDULED`; quem submete recebe 403 ao aprovar (e o banco também barra); a simulação aplica os passos numa transação desfeita e devolve a árvore resultante; passos disponíveis: mover, retirar, renomear, encerrar unidade e trocar o responsável de centro de custo (criar unidade continua no cadastro, com data de início).
 
 Rascunho, passos, validação (simulação), submissão, aprovação por outra pessoa, agendamento, aplicação atômica na data, prévia da árvore, eventos `reorganization.*` e `unit.moved`.
 
@@ -70,7 +70,7 @@ Rascunho, passos, validação (simulação), submissão, aprovação por outra p
 
 ## Etapa 6 — Centros de custo ✔ concluída (2026-11-04)
 
-> Entregue sem testes automatizados novos. Decisões: nome em texto simples (sem traduções nesta etapa); a hierarquia reaproveita as regras de vigência e ciclo das estruturas, com o pai sempre `GROUP` e da mesma entidade; encerrar exige não ter filhos a partir da data.
+> Decisões: nome em texto simples (sem traduções nesta etapa); a hierarquia reaproveita as regras de vigência e ciclo das estruturas, com o pai sempre `GROUP` e da mesma entidade; encerrar exige não ter filhos a partir da data.
 
 Cadastro por entidade, tipos `POSTABLE` e `GROUP`, hierarquia com vigência, bloqueio e encerramento, eventos `cost-center.*`; passo `REASSIGN_COST_CENTER` nas reorganizações.
 
@@ -78,7 +78,7 @@ Cadastro por entidade, tipos `POSTABLE` e `GROUP`, hierarquia com vigência, blo
 
 ## Etapa 7 — Participações societárias ✔ concluída (2026-11-04)
 
-> Entregue sem testes automatizados novos (os casos de referência do aceite ficam na lista de pendências). Decisões: documento de pessoa externa cifrado com AES-256-GCM (`ORGANIZATION_PII_KEY`) e nunca devolvido pela API nem gravado em auditoria ou evento; regras de soma e de ciclo conferidas em todas as datas a partir do início, sob trava por tenant; controlador final segue a maioria dos votos (> 50%) enquanto o controlador for entidade do tenant.
+> Casos de referência do aceite cobertos em `OwnershipGraphTest` (cadeias, caminhos múltiplos, controle). Decisões: documento de pessoa externa cifrado com AES-256-GCM (`ORGANIZATION_PII_KEY`) e nunca devolvido pela API nem gravado em auditoria ou evento; regras de soma e de ciclo conferidas em todas as datas a partir do início, sob trava por tenant; controlador final segue a maioria dos votos (> 50%) enquanto o controlador for entidade do tenant.
 
 Titulares externos (dado pessoal cifrado), participações com vigência, soma ≤ 100%, ausência de ciclo, organograma societário com participação efetiva e controlador final, eventos `ownership.*`.
 
@@ -90,7 +90,7 @@ Titulares externos (dado pessoal cifrado), participações com vigência, soma �
 
 ## Etapa 8 — Histórico e telas ✔ concluída (2026-11-04)
 
-> Entregue: `GET /v1/history/{tipo}/{id}` e `GET /v1/changes` (a partir da auditoria), proxy autenticado no BFF (`/api/organization/...`, com checagem de origem nas escritas) e as seis telas, com TanStack Query. Sem testes de interface nem conferência visual com navegador ainda.
+> Entregue: `GET /v1/history/{tipo}/{id}` e `GET /v1/changes` (a partir da auditoria), proxy autenticado no BFF (`/api/organization/...`, com checagem de origem nas escritas) e as seis telas, com TanStack Query. Telas com formulários de cadastro, conferidas em 390, 820, 1366 e 2560 px sem rolagem lateral; formulários e ações ficam escondidos para quem só lê.
 
 API de histórico e de mudanças por período. Telas no BFF:
 
@@ -117,9 +117,8 @@ Prova de conceito do Cedar (critérios em ORGANIZATION_SECURITY.md). Se aprovada
 
 ## Pendências das etapas 5 a 8
 
-- Testes de integração: reorganização com 500 passos aplicada inteira ou não aplicada; submissor não aprova; centros de custo (hierarquia, encerramento); participações (casos de referência de participação indireta, soma ≤ 100%, ciclo); histórico; isolamento entre tenants nas tabelas novas.
-- Validação dos eventos novos contra os schemas nos testes.
-- Teste ponta a ponta das telas com usuário real e conferência visual em 390, 820, 1366 e 2560 px.
+- Teste ponta a ponta de escrita pelas telas com administrador real (MFA). As APIs de escrita têm testes de integração; pelo navegador foram conferidas leitura, proxy e bloqueios, com usuário comum.
+- Cadastro de entidade e de estabelecimento pelas telas atende só o Brasil (CNPJ, BRL). Outros países, pela API.
 
 ## Ordem e dependências
 

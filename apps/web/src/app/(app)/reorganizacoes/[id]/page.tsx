@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { use, useState } from 'react';
+import { useCanWrite } from '@/components/org/permissions';
 import { FlatTree } from '@/components/org/unit-tree';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,6 +33,7 @@ const OPERATIONS: Record<Step['operation'], string> = {
 /** Reorganização: passos, simulação com prévia da árvore, submissão e decisão. */
 export default function ReorganizacaoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const canWrite = useCanWrite();
   const client = useQueryClient();
   const reorg = useQuery({
     queryKey: ['reorganization', id],
@@ -84,7 +86,7 @@ export default function ReorganizacaoPage({ params }: { params: Promise<{ id: st
   });
 
   const current = steps.data?.steps ?? [];
-  const editable = r?.status === 'DRAFT';
+  const editable = canWrite && r?.status === 'DRAFT';
 
   function addStep() {
     const step: Step = {
@@ -117,7 +119,7 @@ export default function ReorganizacaoPage({ params }: { params: Promise<{ id: st
                   Enviar para aprovação
                 </Button>
               ) : null}
-              {r.status === 'PENDING_APPROVAL' ? (
+              {canWrite && r.status === 'PENDING_APPROVAL' ? (
                 <>
                   <Button variant="secondary" onClick={() => action.mutate('reject')}>
                     Rejeitar
@@ -125,7 +127,7 @@ export default function ReorganizacaoPage({ params }: { params: Promise<{ id: st
                   <Button onClick={() => action.mutate('approve')}>Aprovar e aplicar</Button>
                 </>
               ) : null}
-              {editable || r.status === 'PENDING_APPROVAL' ? (
+              {editable || (canWrite && r.status === 'PENDING_APPROVAL') ? (
                 <Button variant="secondary" onClick={() => action.mutate('cancel')}>
                   Cancelar
                 </Button>
