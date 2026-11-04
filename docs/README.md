@@ -26,6 +26,18 @@
 
 - [Tenant Registry](services/TENANT_REGISTRY.md)
 - [Identity](services/IDENTITY.md): organizações no Keycloak e login do frontend
+- [Organization](services/ORGANIZATION.md): grupos econômicos e entidades jurídicas
+
+## Domínios
+
+- Organization Management (Fase 2, **proposta para aprovação**):
+  [modelo de domínio](domains/organization/ORGANIZATION_DOMAIN_MODEL.md) ·
+  [arquitetura](domains/organization/ORGANIZATION_ARCHITECTURE.md) ·
+  [dados](domains/organization/ORGANIZATION_DATA_MODEL.md) ·
+  [API](domains/organization/ORGANIZATION_API_CONTRACTS.md) ·
+  [eventos](domains/organization/ORGANIZATION_EVENTS.md) ·
+  [segurança](domains/organization/ORGANIZATION_SECURITY.md) ·
+  [plano](domains/organization/ORGANIZATION_IMPLEMENTATION_PLAN.md)
 
 ## Decisões
 

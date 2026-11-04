@@ -7,6 +7,7 @@ spotless = "8.11.0"
 palantir-java-format = "2.103.0"
 cyclonedx = "3.5.1"
 json-schema-validator = "3.0.9"
+archunit = "1.5.1"
 # Correções de segurança acima das versões do Spring Boot 4.1.2 (varredura OSV). Remover quando o Boot incorporar.
 opentelemetry = "1.67.0"
 snappy-java = "1.1.10.9"
@@ -45,6 +46,8 @@ testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgr
 testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka" }
 # Valida payloads contra os contratos em contracts/ (usa Jackson 3, o mesmo do Spring Boot 4)
 json-schema-validator = { module = "com.networknt:json-schema-validator", version.ref = "json-schema-validator" }
+# Testes de arquitetura: direção de dependência entre módulos de um serviço (ADR-0018)
+archunit-junit5 = { module = "com.tngtech.archunit:archunit-junit5", version.ref = "archunit" }
 
 # Plugins usados pelas convenções em build-logic
 spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }

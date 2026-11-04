@@ -1,0 +1,156 @@
+# Organization Management — Plano de implementação
+
+> Estado: **proposta para aprovação**. Nenhuma etapa de código começa sem autorização.
+
+Cada etapa termina com: contratos (OpenAPI e JSON Schema) escritos antes do código; testes unitários e de integração com PostgreSQL e Kafka reais; **teste de isolamento entre tenants**; documentação atualizada; verificação completa (frontend, backend, varreduras); commit local. Nada é publicado sem autorização.
+
+## Etapa 1 — Discovery e desenho (esta)
+
+Documentos ORGANIZATION_* e ADRs 0017 a 0022. **Saída:** aprovação do desenho e dos pontos da seção "Aprovações necessárias".
+
+## Etapa 2 — Esqueleto do serviço, tenant e entidades jurídicas ✔ concluída (2026-11-03)
+
+> Entregue e validado: 59 testes (isolamento entre tenants pela API e direto no banco, contratos, dead letter) e teste ponta a ponta com token real do Keycloak (inclusive MFA do administrador). Ver [docs/services/ORGANIZATION.md](../../services/ORGANIZATION.md). Pendente para a etapa 8: repasse do token pelo BFF.
+
+| Entrega                             | Detalhe                                                                                                                          |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Serviço `services/organization`     | Convenção `davinci.spring-boot-service`, porta 5632, perfil `local`, checagem de configuração obrigatória                        |
+| Banco `organization` com RLS        | Papéis `organization_owner` e `organization_app`, `FORCE ROW LEVEL SECURITY`, `SET LOCAL app.tenant_id` por transação            |
+| Projeção do tenant                  | Consumidor de `tenant-registry.tenant.v1` (padrão do Identity); escrita só com tenant `ACTIVE`                                   |
+| Grupo econômico e entidade jurídica | CRUD, ciclo de vida, pertença ao grupo com vigência, identificadores fiscais (validador `BR_CNPJ` como primeiro esquema)         |
+| Padrões                             | Outbox, idempotência, `If-Match`, Problem Details, auditoria append-only                                                         |
+| Autorização provisória              | `PolicyDecisionPoint` com os papéis do token (`tenant-admin` escreve, `tenant-user` lê)                                          |
+| Fundação                            | Audiência `organization` no realm; papéis de banco no `infra/local/postgres/init`; ArchUnit (teste de dependência entre módulos) |
+
+**Aceite:**
+
+- Teste prova que o tenant A não lê, não altera e não referencia dados do tenant B, pela API e direto no banco com o papel da aplicação.
+- Eventos `legal-entity.*` validam contra o schema.
+
+**Tamanho:** M.
+
+## Etapa 3 — Estabelecimentos ✔ concluída (2026-11-03)
+
+> Entregue: 69 testes no serviço (10 novos) e teste ponta a ponta com token real. Decisões de detalhe: identificadores do estabelecimento em tabela própria (a matriz usa o CNPJ da entidade); suspender a entidade não suspende os estabelecimentos (só bloqueia abrir e reativar); estabelecimento no exterior fica para depois.
+
+Cadastro e ciclo de vida, matriz única, coerência do identificador fiscal com a entidade (regra plugável; CNPJ com a mesma raiz), eventos `establishment.*`.
+
+**Aceite:**
+
+- Não é possível ativar estabelecimento de entidade não ativa.
+- Encerrar a entidade é bloqueado enquanto houver estabelecimento ativo.
+
+**Tamanho:** S.
+
+## Etapa 4 — Unidades, tipos e estruturas com vigência ✔ concluída (2026-11-03)
+
+> Entregue: 81 testes no serviço (12 novos), incluindo propriedade com 4 000 movimentos aleatórios e subárvore de 20 mil unidades em 132 ms. Decisões de detalhe: a medição de desempenho é feita no caminho do servidor (controlador, consulta e serialização), porque o MockMvc acumula os 5 MB da resposta num buffer que só existe no simulador, e roda sob demanda (`./gradlew :organization:performanceTest`) com a máquina livre; mover ou retirar uma unidade gera nova versão da unidade (o evento `unit.moved` carrega a posição); sem data, consultas e movimentos usam hoje em UTC (a unidade não tem fuso próprio); `Accept-Language` ainda não escolhe o texto: a resposta traz o nome padrão e todas as traduções; aninhamento sem regras cadastradas aceita qualquer pai.
+
+Catálogo de tipos e aninhamento, unidades com nome multilíngue, estruturas, vínculos com vigência, movimento simples, consultas `roots`, `children`, `subtree` e `ancestors` com `asOf`.
+
+**Aceite:**
+
+- Teste de propriedade com milhares de movimentos aleatórios não gera ciclo nem sobreposição.
+- Subárvore de 20 mil nós em < 200 ms (medido com Testcontainers).
+
+**Tamanho:** L.
+
+## Etapa 5 — Reorganizações ✔ concluída (2026-11-04)
+
+> Entregue com testes de integração, incluindo os 500 passos tudo ou nada e "quem submete não aprova". Decisões de detalhe: a aprovação aplica todos os passos numa única transação; a data de vigência vale para cada passo e datas futuras viram vínculos que começam naquele dia, por isso não há agendador nem estado `SCHEDULED`; quem submete recebe 403 ao aprovar (e o banco também barra); a simulação aplica os passos numa transação desfeita e devolve a árvore resultante; passos disponíveis: mover, retirar, renomear, encerrar unidade e trocar o responsável de centro de custo (criar unidade continua no cadastro, com data de início).
+
+Rascunho, passos, validação (simulação), submissão, aprovação por outra pessoa, agendamento, aplicação atômica na data, prévia da árvore, eventos `reorganization.*` e `unit.moved`.
+
+**Aceite:**
+
+- Uma reorganização com 500 passos é aplicada inteira ou não é aplicada.
+- O submissor não consegue aprovar.
+
+**Tamanho:** M.
+
+## Etapa 6 — Centros de custo ✔ concluída (2026-11-04)
+
+> Decisões: nome em texto simples (sem traduções nesta etapa); a hierarquia reaproveita as regras de vigência e ciclo das estruturas, com o pai sempre `GROUP` e da mesma entidade; encerrar exige não ter filhos a partir da data.
+
+Cadastro por entidade, tipos `POSTABLE` e `GROUP`, hierarquia com vigência, bloqueio e encerramento, eventos `cost-center.*`; passo `REASSIGN_COST_CENTER` nas reorganizações.
+
+**Tamanho:** M.
+
+## Etapa 7 — Participações societárias ✔ concluída (2026-11-04)
+
+> Casos de referência do aceite cobertos em `OwnershipGraphTest` (cadeias, caminhos múltiplos, controle). Decisões: documento de pessoa externa cifrado com AES-256-GCM (`ORGANIZATION_PII_KEY`) e nunca devolvido pela API nem gravado em auditoria ou evento; regras de soma e de ciclo conferidas em todas as datas a partir do início, sob trava por tenant; controlador final segue a maioria dos votos (> 50%) enquanto o controlador for entidade do tenant.
+
+Titulares externos (dado pessoal cifrado), participações com vigência, soma ≤ 100%, ausência de ciclo, organograma societário com participação efetiva e controlador final, eventos `ownership.*`.
+
+**Aceite:**
+
+- Cálculo de participação indireta conferido com casos de referência (cadeias e caminhos múltiplos).
+
+**Tamanho:** M.
+
+## Etapa 8 — Histórico e telas ✔ concluída (2026-11-04)
+
+> Entregue: `GET /v1/history/{tipo}/{id}` e `GET /v1/changes` (a partir da auditoria), proxy autenticado no BFF (`/api/organization/...`, com checagem de origem nas escritas) e as seis telas, com TanStack Query. Telas com formulários de cadastro, conferidas em 390, 820, 1366 e 2560 px sem rolagem lateral; formulários e ações ficam escondidos para quem só lê.
+
+API de histórico e de mudanças por período. Telas no BFF:
+
+- grupo e entidades;
+- estabelecimentos;
+- árvore organizacional com navegação por nível e seletor de data;
+- reorganização com prévia;
+- centros de custo;
+- organograma societário.
+
+Tudo seguindo o Design System. Componentes de dados usam o TanStack Query.
+
+**Tamanho:** L.
+
+## Etapa 9 — Autorização definitiva ⏸ bloqueada
+
+> Não iniciada: depende do contexto Governance (atribuições e políticas), que ainda não existe, e da prova de conceito do Cedar, que exige dependência nova com binding nativo e precisa de aprovação. As permissões novas (reorganização, aprovação, centros de custo, participações, histórico) já passam pelo `PolicyDecisionPoint`, então a troca da implementação não muda os casos de uso.
+
+Prova de conceito do Cedar (critérios em ORGANIZATION_SECURITY.md). Se aprovada: implementação de `PolicyDecisionPoint` com Cedar, escopos por grupo, entidade, filial e subárvore, pré-filtro de listagens, _step-up_ de MFA para operações críticas.
+
+**Depende de:** Governance (atribuições e políticas). Até lá, permanece a autorização provisória.
+
+**Tamanho:** M.
+
+## Pendências das etapas 5 a 8
+
+- Teste ponta a ponta de escrita pelas telas com administrador real (MFA). As APIs de escrita têm testes de integração; pelo navegador foram conferidas leitura, proxy e bloqueios, com usuário comum.
+- Cadastro de entidade e de estabelecimento pelas telas atende só o Brasil (CNPJ, BRL). Outros países, pela API.
+
+## Ordem e dependências
+
+```
+2 ─▶ 3 ─▶ 4 ─▶ 5
+│         └──▶ 6 (usa unidades)
+└──▶ 7 (usa entidades)
+2..7 ─▶ 8
+PoC Cedar (paralela) ─▶ 9
+```
+
+## Aprovações necessárias antes da etapa 2
+
+1. **ADR-0017:** um tenant contém um ou mais grupos econômicos; um grupo com entidades em jurisdições de residência diferentes exige um tenant por região (federação de tenants fica para depois).
+2. **ADR-0018:** um único serviço `organization`, modular.
+3. **ADR-0019:** hierarquias por lista de adjacência com vigência e CTE recursiva; extensão `btree_gist`.
+4. **ADR-0020:** vigência em datas (`[from, to)`), interpretadas no fuso da entidade; histórico de atributos simples só por auditoria na primeira entrega.
+5. **ADR-0021:** Cedar como motor-alvo, condicionado à prova de conceito; autorização provisória por papéis até o Governance.
+6. **ADR-0022:** identificadores fiscais por esquema com validadores plugáveis; só `BR_CNPJ` com validação completa na etapa 2.
+7. Ausência de agregado "Organization" e uso de **Establishment** para filiais (glossário do modelo de domínio).
+8. Primeira adoção de RLS e papéis de banco separados (muda o ambiente local).
+9. **Dependência nova:** ArchUnit (somente em testes), para garantir a direção das dependências entre módulos.
+
+## Riscos técnicos
+
+| Risco                                                             | Mitigação                                                                                                              |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| RLS mal configurado (papel dono ignora a política)                | `FORCE ROW LEVEL SECURITY`, papel da aplicação sem privilégio de dono, teste de isolamento direto no banco             |
+| Vigência e fuso confundem usuários e integrações                  | `asOf` explícito na API, datas interpretadas no fuso da entidade, eventos com `effectiveOn`                            |
+| Árvores muito grandes ou profundas                                | Navegação por nível, limite de profundidade, medição na etapa 4 e caminho de otimização definido (fechamento derivado) |
+| Corrida na checagem de ciclo                                      | Trava por estrutura (`pg_advisory_xact_lock`) e `EXCLUDE` no banco                                                     |
+| Regras fiscais por país crescem sem controle                      | Validadores por esquema isolados (ADR-0022); regras tributárias ficam no contexto Tax                                  |
+| Participações cruzadas reais (fora do suporte inicial)            | Rejeitadas com erro explícito; suporte junto com a consolidação                                                        |
+| Binding nativo do Cedar                                           | Prova de conceito antes de adotar; OPA com WASM como alternativa                                                       |
+| Grupo multinacional com exigência de residência em várias regiões | Um tenant por região, com consolidação por dados agregados (desenho detalhado em etapa futura)                         |

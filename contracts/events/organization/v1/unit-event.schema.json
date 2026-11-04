@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:davinci:contracts:events:organization:v1:unit-event",
+  "title": "Evento de unidade organizacional (CloudEvents 1.0, modo estruturado)",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "time",
+    "datacontenttype",
+    "dataschema",
+    "subject",
+    "tenantid",
+    "correlationid",
+    "data"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "source": {
+      "const": "/data-plane/organization"
+    },
+    "type": {
+      "enum": [
+        "br.com.davinci.organization.unit.created.v1",
+        "br.com.davinci.organization.unit.updated.v1",
+        "br.com.davinci.organization.unit.deactivated.v1",
+        "br.com.davinci.organization.unit.reactivated.v1",
+        "br.com.davinci.organization.unit.closed.v1",
+        "br.com.davinci.organization.unit.moved.v1",
+        "br.com.davinci.organization.unit.removed.v1"
+      ]
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "dataschema": {
+      "const": "urn:davinci:contracts:events:organization:v1:unit-event"
+    },
+    "subject": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "tenantid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "correlationid": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "data": {
+      "$ref": "#/$defs/unit"
+    }
+  },
+  "$defs": {
+    "unit": {
+      "type": "object",
+      "description": "Estado da unidade após o evento. placement só em moved/removed: posição na estrutura a partir de effectiveOn.",
+      "required": [
+        "unitId",
+        "tenantId",
+        "code",
+        "name",
+        "unitTypeId",
+        "legalEntityId",
+        "establishmentId",
+        "status",
+        "validFrom",
+        "closedOn",
+        "effectiveOn",
+        "placement",
+        "version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "unitId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "tenantId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "object",
+          "required": ["text", "translations"],
+          "additionalProperties": false,
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "translations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "unitTypeId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "legalEntityId": {
+          "type": ["string", "null"],
+          "format": "uuid"
+        },
+        "establishmentId": {
+          "type": ["string", "null"],
+          "format": "uuid"
+        },
+        "status": {
+          "enum": ["ACTIVE", "INACTIVE", "CLOSED"]
+        },
+        "validFrom": {
+          "type": "string",
+          "format": "date"
+        },
+        "closedOn": {
+          "type": ["string", "null"],
+          "format": "date"
+        },
+        "effectiveOn": {
+          "type": "string",
+          "format": "date"
+        },
+        "placement": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "structureId",
+                "structureCode",
+                "previousParentUnitId",
+                "parentUnitId",
+                "inStructure"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "structureId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "structureCode": {
+                  "type": "string"
+                },
+                "previousParentUnitId": {
+                  "type": ["string", "null"],
+                  "format": "uuid"
+                },
+                "parentUnitId": {
+                  "type": ["string", "null"],
+                  "format": "uuid"
+                },
+                "inStructure": {
+                  "type": "boolean"
+                }
+              }
+            }
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

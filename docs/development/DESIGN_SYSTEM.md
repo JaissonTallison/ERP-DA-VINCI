@@ -42,3 +42,4 @@ Visual de produto corporativo consolidado: sóbrio, denso na medida certa, sem e
 
 - 2026-11-03 — Tokens iniciais e regras de lint criados na Fase 1.
 - 2026-11-03 — Marca daVINCI ERP Enterprise organizada em `brand/` e aplicada ao cabeçalho, favicon, manifesto PWA e Open Graph.
+- 2026-11-04 — Navegação principal em trilho (opção ativa em branco) e telas do Organization: tabelas zebradas que viram cartões no celular, árvore com abertura por nível, status em texto.

@@ -13,6 +13,8 @@ const schema = z.object({
   OIDC_CLIENT_ID: z.string().min(1).default('davinci-web'),
   OIDC_CLIENT_SECRET: dev ? z.string().min(1).default('davinci_web_dev_secret') : z.string().min(1),
   REDIS_URL: dev ? z.url().default('redis://localhost:5601') : z.url(),
+  /** API do serviço Organization; o navegador nunca fala com ela direto, só por /api/organization. */
+  ORGANIZATION_API_URL: dev ? z.url().default('http://localhost:5632') : z.url(),
   /** Inatividade máxima da sessão, igual à do Keycloak (ssoSessionIdleTimeout). */
   SESSION_IDLE_SECONDS: z.coerce.number().int().positive().default(1800),
   /** Duração máxima da sessão, igual à do Keycloak (ssoSessionMaxLifespan). */

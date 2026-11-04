@@ -1,0 +1,80 @@
+# Configuração base. Credenciais e endereços de infraestrutura NÃO têm valor padrão: sem a variável, o serviço não sobe.
+# Valores de desenvolvimento ficam em application-local.yaml (perfil `local`, ativado pelo bootRun e pelos testes).
+server:
+  port: ${PORT:5632}
+  shutdown: graceful
+
+spring:
+  application:
+    name: organization
+  threads:
+    virtual:
+      enabled: true
+  jackson:
+    deserialization:
+      # Contrato com additionalProperties: false — campo desconhecido é erro (contra mass assignment).
+      fail-on-unknown-properties: true
+  datasource:
+    # Papel da aplicação: sem privilégio de dono, sujeito ao Row-Level Security.
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+  flyway:
+    # Papel dono das tabelas, usado só nas migrações.
+    user: ${DATABASE_MIGRATION_USERNAME}
+    password: ${DATABASE_MIGRATION_PASSWORD}
+    placeholders:
+      appRole: ${DATABASE_USERNAME}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: organization
+      auto-offset-reset: earliest
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OIDC_ISSUER_URI}
+          audiences: organization
+
+organization:
+  pii:
+    # Chave AES-256 (Base64) para dados pessoais cifrados na aplicação; em produção, do cofre de segredos.
+    key: ${ORGANIZATION_PII_KEY}
+  outbox:
+    poll-interval: 500
+    batch-size: 100
+    send-timeout: 10s
+    retention: 7d
+    cleanup-cron: '0 20 3 * * *'
+    topic-partitions: 6
+    topic-replicas: ${KAFKA_TOPIC_REPLICAS:1}
+  consumer:
+    retry-interval: 2s
+    retry-attempts: 5
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING:1.0}
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:5610/v1/traces}
+  otlp:
+    metrics:
+      export:
+        url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:http://localhost:5610/v1/metrics}

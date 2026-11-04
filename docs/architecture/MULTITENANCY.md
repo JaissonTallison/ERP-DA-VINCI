@@ -57,4 +57,4 @@ registrar ──▶ PROVISIONING ──ativar──▶ ACTIVE ◀──reativar�
 4. **Teste de isolamento obrigatório:** o tenant A não lê nem altera dados do tenant B, por API e direto no banco.
 5. Processamentos em lote rodam por tenant (filas e limites por tenant), para que um cliente grande não degrade os demais.
 
-O Tenant Registry e o Identity não usam RLS: guardam dados de plataforma (o cadastro dos próprios tenants), operados apenas pela equipe da plataforma.
+O **Organization** é o primeiro serviço com RLS (forçado, papel da aplicação sem privilégio de dono, chaves estrangeiras compostas por tenant). O Tenant Registry e o Identity não usam RLS: guardam dados de plataforma (o cadastro dos próprios tenants), operados apenas pela equipe da plataforma.

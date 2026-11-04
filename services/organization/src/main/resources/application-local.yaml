@@ -1,0 +1,23 @@
+# Perfil `local`: aponta para o compose.yaml (portas 5600–5699). Credenciais SOMENTE de desenvolvimento.
+# Ativado pelo `./gradlew :organization:bootRun` e pelos testes; nunca em outro ambiente.
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5600/organization
+    username: organization_app
+    password: organization_app_dev
+  flyway:
+    user: organization_owner
+    password: organization_owner_dev
+    placeholders:
+      appRole: organization_app
+  kafka:
+    bootstrap-servers: localhost:5602
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:5607/realms/davinci
+organization:
+  pii:
+    # Chave SOMENTE de desenvolvimento (texto conhecido); nunca usar fora do perfil local.
+    key: ZGF2aW5jaS1kZXYtb25seS1waWkta2V5LTMyYnl0ZXM=

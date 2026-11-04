@@ -1,0 +1,1592 @@
+openapi: 3.1.0
+info:
+  title: Organization Management API
+  version: 1.0.0
+  description: |
+    Estrutura corporativa do cliente: grupos econômicos, entidades jurídicas (etapa 2), estabelecimentos (etapa 3) e estrutura organizacional com vigência (etapa 4).
+    O tenant vem sempre do token (claim `organization`); recurso de outro tenant responde 404.
+    Modelo de domínio: docs/domains/organization/ORGANIZATION_DOMAIN_MODEL.md.
+servers:
+  - url: http://localhost:5632
+    description: Ambiente local
+security:
+  - bearer: []
+paths:
+  /v1/economic-groups:
+    post:
+      operationId: createEconomicGroup
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/json:
+              { schema: { $ref: '#/components/schemas/CreateEconomicGroupRequest' } },
+          }
+      responses:
+        '201': { $ref: '#/components/responses/EconomicGroup' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listEconomicGroups
+      parameters:
+        - { name: status, in: query, schema: { enum: [ACTIVE, CLOSED] } }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Cursor' }
+      responses:
+        '200':
+          description: Página de grupos
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/EconomicGroupPage' } } }
+  /v1/economic-groups/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getEconomicGroup
+      responses:
+        '200': { $ref: '#/components/responses/EconomicGroup' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updateEconomicGroup
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/merge-patch+json:
+              { schema: { $ref: '#/components/schemas/UpdateEconomicGroupRequest' } },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/EconomicGroup' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/economic-groups/{id}/close:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: closeEconomicGroup
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/EconomicGroup' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/economic-groups/{id}/legal-entities:
+    parameters: [{ $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/AsOf' }]
+    get:
+      operationId: listGroupLegalEntities
+      responses:
+        '200':
+          description: Entidades do grupo na data
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/LegalEntityPage' } } }
+  /v1/legal-entities:
+    post:
+      operationId: createLegalEntity
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/json: { schema: { $ref: '#/components/schemas/CreateLegalEntityRequest' } },
+          }
+      responses:
+        '201': { $ref: '#/components/responses/LegalEntity' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listLegalEntities
+      parameters:
+        - { name: country, in: query, schema: { type: string, pattern: '^[A-Z]{2}$' } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/LegalEntityStatus' } }
+        - { name: economicGroupId, in: query, schema: { type: string, format: uuid } }
+        - { name: q, in: query, schema: { type: string, maxLength: 100 } }
+        - { $ref: '#/components/parameters/AsOf' }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Cursor' }
+      responses:
+        '200':
+          description: Página de entidades jurídicas
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/LegalEntityPage' } } }
+  /v1/legal-entities/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/AsOf' }]
+    get:
+      operationId: getLegalEntity
+      responses:
+        '200': { $ref: '#/components/responses/LegalEntity' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updateLegalEntity
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/merge-patch+json:
+              { schema: { $ref: '#/components/schemas/UpdateLegalEntityRequest' } },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/LegalEntity' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/legal-entities/{id}/{transition}:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - {
+          name: transition,
+          in: path,
+          required: true,
+          schema: { enum: [activate, suspend, reactivate, close] },
+        }
+    post:
+      operationId: transitionLegalEntity
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/LegalEntity' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/legal-entities/{id}/economic-group:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    put:
+      operationId: assignEconomicGroup
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/GroupAssignmentRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/LegalEntity' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/legal-entities/{id}/tax-identifiers:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: addTaxIdentifier
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/TaxIdentifierRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/LegalEntity' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/legal-entities/{id}/tax-identifiers/{taxIdentifierId}/end:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - { name: taxIdentifierId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: endTaxIdentifier
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/LegalEntity' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /v1/establishments:
+    post:
+      operationId: openEstablishment
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/json: { schema: { $ref: '#/components/schemas/OpenEstablishmentRequest' } },
+          }
+      responses:
+        '201': { $ref: '#/components/responses/Establishment' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listEstablishments
+      parameters:
+        - { name: legalEntityId, in: query, schema: { type: string, format: uuid } }
+        - { name: type, in: query, schema: { $ref: '#/components/schemas/EstablishmentType' } }
+        - { name: status, in: query, schema: { enum: [ACTIVE, SUSPENDED, CLOSED] } }
+        - { name: country, in: query, schema: { $ref: '#/components/schemas/CountryCode' } }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Cursor' }
+      responses:
+        '200':
+          description: Página de estabelecimentos (ordem por código e id)
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/EstablishmentPage' } } }
+  /v1/establishments/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getEstablishment
+      responses:
+        '200': { $ref: '#/components/responses/Establishment' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updateEstablishment
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/merge-patch+json:
+              { schema: { $ref: '#/components/schemas/UpdateEstablishmentRequest' } },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/Establishment' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/establishments/{id}/{transition}:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - {
+          name: transition,
+          in: path,
+          required: true,
+          schema: { enum: [suspend, reactivate, close] },
+        }
+    post:
+      operationId: transitionEstablishment
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/Establishment' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/establishments/{id}/tax-identifiers:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: addEstablishmentTaxIdentifier
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/TaxIdentifierRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/Establishment' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/establishments/{id}/tax-identifiers/{taxIdentifierId}/end:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - { name: taxIdentifierId, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      operationId: endEstablishmentTaxIdentifier
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/Establishment' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /v1/unit-types:
+    post:
+      operationId: createUnitType
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/CreateUnitTypeRequest' } } }
+      responses:
+        '201':
+          {
+            description: Tipo criado,
+            content: { application/json: { schema: { $ref: '#/components/schemas/UnitType' } } },
+          }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listUnitTypes
+      responses:
+        '200':
+          description: Tipos do tenant
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    {
+                      type: object,
+                      required: [items],
+                      properties:
+                        {
+                          items: { type: array, items: { $ref: '#/components/schemas/UnitType' } },
+                        },
+                    },
+                },
+            }
+  /v1/unit-types/{id}/nesting:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getNesting
+      responses:
+        '200':
+          {
+            description: Tipos permitidos como pai (vazio = qualquer),
+            content: { application/json: { schema: { $ref: '#/components/schemas/Nesting' } } },
+          }
+    put:
+      operationId: setNesting
+      requestBody:
+        required: true
+        content:
+          {
+            application/json:
+              {
+                schema:
+                  {
+                    type: object,
+                    required: [allowedParentTypeIds],
+                    additionalProperties: false,
+                    properties:
+                      {
+                        allowedParentTypeIds:
+                          {
+                            type: array,
+                            maxItems: 100,
+                            uniqueItems: true,
+                            items: { type: string, format: uuid },
+                          },
+                      },
+                  },
+              },
+          }
+      responses:
+        '200':
+          {
+            description: Regras gravadas,
+            content: { application/json: { schema: { $ref: '#/components/schemas/Nesting' } } },
+          }
+  /v1/organizational-units:
+    post:
+      operationId: createUnit
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/CreateUnitRequest' } } }
+      responses:
+        '201': { $ref: '#/components/responses/Unit' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listUnits
+      parameters:
+        - { name: unitTypeId, in: query, schema: { type: string, format: uuid } }
+        - { name: legalEntityId, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { enum: [ACTIVE, INACTIVE, CLOSED] } }
+        - { name: q, in: query, schema: { type: string, maxLength: 100 } }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Cursor' }
+      responses:
+        '200':
+          {
+            description: Página de unidades,
+            content: { application/json: { schema: { $ref: '#/components/schemas/UnitPage' } } },
+          }
+  /v1/organizational-units/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getUnit
+      responses:
+        '200': { $ref: '#/components/responses/Unit' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updateUnit
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/merge-patch+json:
+              { schema: { $ref: '#/components/schemas/UpdateUnitRequest' } },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/Unit' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/organizational-units/{id}/{transition}:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - {
+          name: transition,
+          in: path,
+          required: true,
+          schema: { enum: [deactivate, reactivate, close] },
+        }
+    post:
+      operationId: transitionUnit
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/Unit' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/structures:
+    post:
+      operationId: createStructure
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/CreateStructureRequest' } } }
+      responses:
+        '201':
+          {
+            description: Estrutura criada,
+            content: { application/json: { schema: { $ref: '#/components/schemas/Structure' } } },
+          }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listStructures
+      responses:
+        '200':
+          description: Estruturas do tenant
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    {
+                      type: object,
+                      required: [items],
+                      properties:
+                        {
+                          items: { type: array, items: { $ref: '#/components/schemas/Structure' } },
+                        },
+                    },
+                },
+            }
+  /v1/structures/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getStructure
+      responses:
+        '200':
+          {
+            description: Estrutura,
+            content: { application/json: { schema: { $ref: '#/components/schemas/Structure' } } },
+          }
+        '404': { $ref: '#/components/responses/Problem' }
+  /v1/structures/{id}/moves:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: moveUnit
+      summary: Posiciona ou move a unidade a partir de effectiveOn (pai nulo = raiz). Datas futuras são aceitas.
+      requestBody:
+        required: true
+        content:
+          {
+            application/json:
+              {
+                schema:
+                  {
+                    type: object,
+                    required: [unitId, effectiveOn],
+                    additionalProperties: false,
+                    properties:
+                      {
+                        unitId: { type: string, format: uuid },
+                        parentUnitId: { type: [string, 'null'], format: uuid },
+                        effectiveOn: { type: string, format: date },
+                      },
+                  },
+              },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/Unit' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/structures/{id}/removals:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: removeUnit
+      requestBody:
+        required: true
+        content:
+          {
+            application/json:
+              {
+                schema:
+                  {
+                    type: object,
+                    required: [unitId, effectiveOn],
+                    additionalProperties: false,
+                    properties:
+                      {
+                        unitId: { type: string, format: uuid },
+                        effectiveOn: { type: string, format: date },
+                      },
+                  },
+              },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/Unit' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/structures/{id}/roots:
+    parameters: [{ $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/AsOf' }]
+    get:
+      operationId: getRoots
+      responses:
+        '200': { $ref: '#/components/responses/Tree' }
+  /v1/structures/{id}/units/{unitId}/children:
+    parameters:
+      [
+        { $ref: '#/components/parameters/Id' },
+        { $ref: '#/components/parameters/UnitId' },
+        { $ref: '#/components/parameters/AsOf' },
+      ]
+    get:
+      operationId: getChildren
+      responses:
+        '200': { $ref: '#/components/responses/Tree' }
+  /v1/structures/{id}/units/{unitId}/subtree:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - { $ref: '#/components/parameters/UnitId' }
+      - { $ref: '#/components/parameters/AsOf' }
+      - {
+          name: maxDepth,
+          in: query,
+          schema: { type: integer, minimum: 0, maximum: 64, default: 64 },
+        }
+      - {
+          name: limit,
+          in: query,
+          schema: { type: integer, minimum: 1, maximum: 50000, default: 10000 },
+        }
+    get:
+      operationId: getSubtree
+      responses:
+        '200': { $ref: '#/components/responses/Tree' }
+  /v1/structures/{id}/units/{unitId}/ancestors:
+    parameters:
+      [
+        { $ref: '#/components/parameters/Id' },
+        { $ref: '#/components/parameters/UnitId' },
+        { $ref: '#/components/parameters/AsOf' },
+      ]
+    get:
+      operationId: getAncestors
+      responses:
+        '200': { $ref: '#/components/responses/Tree' }
+  /v1/reorganizations:
+    post:
+      operationId: createReorganization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [structureId, description, effectiveOn]
+              additionalProperties: false
+              properties:
+                structureId: { type: string, format: uuid }
+                description: { type: string, minLength: 1, maxLength: 500 }
+                effectiveOn: { type: string, format: date }
+      responses:
+        '201': { $ref: '#/components/responses/Reorganization' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listReorganizations
+      parameters:
+        - { name: structureId, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { $ref: '#/components/schemas/ReorganizationStatus' } }
+      responses:
+        '200':
+          description: Reorganizações (até 500, mais recentes primeiro)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/Reorganization' } }
+  /v1/reorganizations/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getReorganization
+      responses:
+        '200': { $ref: '#/components/responses/Reorganization' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updateReorganization
+      description: Só em rascunho.
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                description: { type: string, minLength: 1, maxLength: 500 }
+                effectiveOn: { type: string, format: date }
+      responses:
+        '200': { $ref: '#/components/responses/Reorganization' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/reorganizations/{id}/steps:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: listReorganizationSteps
+      responses:
+        '200':
+          description: Passos na ordem de aplicação
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/ReorganizationSteps' } } }
+    put:
+      operationId: replaceReorganizationSteps
+      description: Substitui todos os passos do rascunho (até 1000).
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/ReorganizationSteps' } } }
+      responses:
+        '200': { $ref: '#/components/responses/Reorganization' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/reorganizations/{id}/simulation:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: simulateReorganization
+      description: Aplica os passos numa transação desfeita ao final e devolve o resultado e a árvore resultante.
+      responses:
+        '200':
+          description: Resultado da simulação
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [valid, failedStep, code, message, preview]
+                properties:
+                  valid: { type: boolean }
+                  failedStep: { type: [integer, 'null'], minimum: 0 }
+                  code: { type: [string, 'null'] }
+                  message: { type: [string, 'null'] }
+                  preview: { type: array, items: { $ref: '#/components/schemas/TreeNode' } }
+  /v1/reorganizations/{id}/{action}:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - {
+          name: action,
+          in: path,
+          required: true,
+          schema: { enum: [submit, approve, reject, cancel] },
+        }
+      - { $ref: '#/components/parameters/IfMatch' }
+    post:
+      operationId: decideReorganization
+      description: >
+        submit envia para aprovação; approve aplica todos os passos numa única transação (quem submeteu recebe 403);
+        reject e cancel encerram sem aplicar.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: { note: { type: string, maxLength: 500 } }
+      responses:
+        '200': { $ref: '#/components/responses/Reorganization' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/cost-centers:
+    post:
+      operationId: createCostCenter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [legalEntityId, code, name, kind, category]
+              additionalProperties: false
+              properties:
+                legalEntityId: { type: string, format: uuid }
+                code: { $ref: '#/components/schemas/BusinessCode' }
+                name: { type: string, minLength: 1, maxLength: 200 }
+                kind: { enum: [POSTABLE, GROUP] }
+                category: { type: string, minLength: 1, maxLength: 60 }
+                responsibleUnitId: { type: [string, 'null'], format: uuid }
+                parentId: { type: [string, 'null'], format: uuid }
+                validFrom: { type: string, format: date }
+      responses:
+        '201': { $ref: '#/components/responses/CostCenter' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/cost-centers/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getCostCenter
+      responses:
+        '200': { $ref: '#/components/responses/CostCenter' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updateCostCenter
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                name: { type: string, minLength: 1, maxLength: 200 }
+                category: { type: string, minLength: 1, maxLength: 60 }
+      responses:
+        '200': { $ref: '#/components/responses/CostCenter' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/cost-centers/{id}/responsible:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: reassignCostCenter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: { responsibleUnitId: { type: [string, 'null'], format: uuid } }
+      responses:
+        '200': { $ref: '#/components/responses/CostCenter' }
+  /v1/cost-centers/{id}/moves:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: moveCostCenter
+      description: Muda o pai na hierarquia de totalização a partir da data (pai nulo = raiz; pai sempre GROUP).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                parentId: { type: [string, 'null'], format: uuid }
+                effectiveOn: { type: string, format: date }
+      responses:
+        '200': { $ref: '#/components/responses/CostCenter' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/cost-centers/{id}/{transition}:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - { name: transition, in: path, required: true, schema: { enum: [block, unblock, close] } }
+    post:
+      operationId: transitionCostCenter
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/CostCenter' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/legal-entities/{id}/cost-centers:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: listCostCenters
+      parameters: [{ name: status, in: query, schema: { enum: [ACTIVE, BLOCKED, CLOSED] } }]
+      responses:
+        '200':
+          description: Centros de custo da entidade
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/CostCenter' } }
+  /v1/legal-entities/{id}/cost-centers/tree:
+    parameters: [{ $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/AsOf' }]
+    get:
+      operationId: costCenterTree
+      responses:
+        '200':
+          description: Centros vigentes na data, com o pai vigente (nulo = raiz)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [asOf, items]
+                properties:
+                  asOf: { type: string, format: date }
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, code, name, kind, status, parentId]
+                      properties:
+                        id: { type: string, format: uuid }
+                        code: { type: string }
+                        name: { type: string }
+                        kind: { enum: [POSTABLE, GROUP] }
+                        status: { enum: [ACTIVE, BLOCKED, CLOSED] }
+                        parentId: { type: [string, 'null'], format: uuid }
+  /v1/external-parties:
+    post:
+      operationId: createExternalParty
+      description: O documento fiscal é cifrado na gravação e não volta pela API.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, name]
+              additionalProperties: false
+              properties:
+                kind: { enum: [COMPANY, PERSON, FUND, OTHER] }
+                name: { type: string, minLength: 1, maxLength: 200 }
+                country: { type: [string, 'null'], pattern: '^[A-Z]{2}$' }
+                taxIdentifier: { type: [string, 'null'], maxLength: 40 }
+      responses:
+        '201':
+          description: Parte externa
+          content: { application/json: { schema: { $ref: '#/components/schemas/ExternalParty' } } }
+    get:
+      operationId: listExternalParties
+      responses:
+        '200':
+          description: Partes externas (até 1000, por nome)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/ExternalParty' } }
+  /v1/legal-entities/{id}/ownership:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: createOwnershipInterest
+      description: Soma das participações na entidade ≤ 100% e sem ciclo, em todas as datas a partir do início.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [capitalPercentage, votingPercentage, validFrom]
+              additionalProperties: false
+              properties:
+                ownerLegalEntityId: { type: [string, 'null'], format: uuid }
+                ownerExternalPartyId: { type: [string, 'null'], format: uuid }
+                capitalPercentage: { type: number, exclusiveMinimum: 0, maximum: 100 }
+                votingPercentage: { type: number, minimum: 0, maximum: 100 }
+                shareClass: { type: [string, 'null'], maxLength: 40 }
+                validFrom: { type: string, format: date }
+      responses:
+        '201':
+          description: Participação
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/OwnershipInterest' } } }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listOwnership
+      parameters:
+        - { name: direction, in: query, schema: { enum: [owners, holdings], default: owners } }
+        - { $ref: '#/components/parameters/AsOf' }
+      responses:
+        '200':
+          description: Participações diretas na data
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [asOf, items]
+                properties:
+                  asOf: { type: string, format: date }
+                  items: { type: array, items: { $ref: '#/components/schemas/OwnershipInterest' } }
+  /v1/ownership-interests/{id}/end:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: endOwnershipInterest
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200':
+          description: Participação encerrada
+          content:
+            { application/json: { schema: { $ref: '#/components/schemas/OwnershipInterest' } } }
+  /v1/legal-entities/{id}/ownership-chart:
+    parameters: [{ $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/AsOf' }]
+    get:
+      operationId: ownershipChart
+      description: Titulares diretos e indiretos com participação efetiva, e cadeia até o controlador final.
+      responses:
+        '200':
+          description: Organograma societário
+          content: { application/json: { schema: { $ref: '#/components/schemas/OwnershipChart' } } }
+  /v1/history/{aggregateType}/{id}:
+    parameters:
+      - { name: aggregateType, in: path, required: true, schema: { type: string } }
+      - { $ref: '#/components/parameters/Id' }
+    get:
+      operationId: history
+      description: Mudanças de um registro (até 1000), da auditoria append-only. Só administradores.
+      responses:
+        '200': { $ref: '#/components/responses/History' }
+  /v1/changes:
+    get:
+      operationId: changes
+      description: Mudanças do tenant no período [from, to), paginadas por sequência.
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: aggregateType, in: query, schema: { type: string } }
+        - { name: after, in: query, schema: { type: integer, minimum: 0 } }
+        - {
+            name: limit,
+            in: query,
+            schema: { type: integer, minimum: 1, maximum: 1000, default: 100 },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/History' }
+        '400': { $ref: '#/components/responses/Problem' }
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    AsOf:
+      {
+        name: asOf,
+        in: query,
+        schema: { type: string, format: date },
+        description: 'Data de referência; padrão: hoje no fuso da entidade',
+      }
+    Limit:
+      { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+    Cursor: { name: cursor, in: query, schema: { type: string } }
+    UnitId: { name: unitId, in: path, required: true, schema: { type: string, format: uuid } }
+    IdempotencyKey:
+      {
+        name: Idempotency-Key,
+        in: header,
+        required: true,
+        schema: { type: string, minLength: 1, maxLength: 100 },
+      }
+    IfMatch:
+      {
+        name: If-Match,
+        in: header,
+        required: true,
+        schema: { type: string },
+        description: 'Versão atual, como devolvida no ETag',
+      }
+  responses:
+    EconomicGroup:
+      description: Grupo econômico
+      content: { application/json: { schema: { $ref: '#/components/schemas/EconomicGroup' } } }
+    LegalEntity:
+      description: Entidade jurídica
+      content: { application/json: { schema: { $ref: '#/components/schemas/LegalEntity' } } }
+    Unit:
+      description: Unidade organizacional
+      content: { application/json: { schema: { $ref: '#/components/schemas/Unit' } } }
+    Tree:
+      description: Nós da estrutura na data (lista plana com parentUnitId e depth)
+      content: { application/json: { schema: { $ref: '#/components/schemas/Tree' } } }
+    Establishment:
+      description: Estabelecimento
+      content: { application/json: { schema: { $ref: '#/components/schemas/Establishment' } } }
+    Reorganization:
+      description: Reorganização
+      content: { application/json: { schema: { $ref: '#/components/schemas/Reorganization' } } }
+    CostCenter:
+      description: Centro de custo
+      content: { application/json: { schema: { $ref: '#/components/schemas/CostCenter' } } }
+    History:
+      description: Entradas da auditoria
+      content: { application/json: { schema: { $ref: '#/components/schemas/HistoryPage' } } }
+    Problem:
+      description: Erro RFC 9457
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+  schemas:
+    BusinessCode: { type: string, pattern: '^[A-Z0-9][A-Z0-9._-]{0,39}$' }
+    CountryCode: { type: string, pattern: '^[A-Z]{2}$' }
+    CurrencyCode: { type: string, pattern: '^[A-Z]{3}$' }
+    LegalEntityStatus: { enum: [PLANNED, ACTIVE, SUSPENDED, CLOSED] }
+    PostalAddress:
+      type: object
+      required: [country, addressLines, locality]
+      additionalProperties: false
+      properties:
+        country: { $ref: '#/components/schemas/CountryCode' }
+        addressLines:
+          {
+            type: array,
+            minItems: 1,
+            maxItems: 4,
+            items: { type: string, minLength: 1, maxLength: 200 },
+          }
+        locality: { type: string, minLength: 1, maxLength: 120 }
+        administrativeArea: { type: [string, 'null'], maxLength: 120 }
+        postalCode: { type: [string, 'null'], maxLength: 20 }
+    CreateEconomicGroupRequest:
+      type: object
+      required: [code, name, referenceCurrency, referenceTimezone]
+      additionalProperties: false
+      properties:
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        referenceCurrency: { $ref: '#/components/schemas/CurrencyCode' }
+        referenceTimezone: { type: string, examples: [America/Sao_Paulo] }
+    UpdateEconomicGroupRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        referenceCurrency: { $ref: '#/components/schemas/CurrencyCode' }
+        referenceTimezone: { type: string }
+    EconomicGroup:
+      type: object
+      required:
+        [
+          id,
+          code,
+          name,
+          referenceCurrency,
+          referenceTimezone,
+          status,
+          createdAt,
+          updatedAt,
+          version,
+        ]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string }
+        referenceCurrency: { $ref: '#/components/schemas/CurrencyCode' }
+        referenceTimezone: { type: string }
+        status: { enum: [ACTIVE, CLOSED] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    EconomicGroupPage:
+      type: object
+      required: [items]
+      additionalProperties: false
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/EconomicGroup' } }
+        nextCursor: { type: [string, 'null'] }
+    TaxIdentifierRequest:
+      type: object
+      required: [scheme, value]
+      additionalProperties: false
+      properties:
+        scheme: { type: string, examples: [BR_CNPJ, US_EIN] }
+        value: { type: string, minLength: 1, maxLength: 40 }
+        primary: { type: boolean, default: false }
+        validFrom: { type: string, format: date }
+    TaxIdentifier:
+      type: object
+      required: [id, scheme, value, primary, validFrom, validTo]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        scheme: { type: string }
+        value: { type: string, description: Normalizado }
+        primary: { type: boolean }
+        validFrom: { type: string, format: date }
+        validTo: { type: [string, 'null'], format: date }
+    CreateLegalEntityRequest:
+      type: object
+      required:
+        [code, legalName, country, functionalCurrency, timezone, defaultLocale, registeredAddress]
+      additionalProperties: false
+      properties:
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        legalName: { type: string, minLength: 1, maxLength: 200 }
+        tradeName: { type: string, maxLength: 200 }
+        country: { $ref: '#/components/schemas/CountryCode' }
+        subdivision: { type: string, pattern: '^[A-Z]{2}-[A-Z0-9]{1,3}$' }
+        legalForm: { type: string, maxLength: 40 }
+        functionalCurrency: { $ref: '#/components/schemas/CurrencyCode' }
+        timezone: { type: string }
+        defaultLocale: { type: string, examples: [pt-BR] }
+        fiscalYearStartMonth: { type: integer, minimum: 1, maximum: 12, default: 1 }
+        registeredAddress: { $ref: '#/components/schemas/PostalAddress' }
+        taxIdentifiers:
+          {
+            type: array,
+            maxItems: 10,
+            items: { $ref: '#/components/schemas/TaxIdentifierRequest' },
+          }
+        economicGroupId: { type: string, format: uuid }
+        status: { enum: [PLANNED, ACTIVE], default: PLANNED }
+        effectiveOn:
+          {
+            type: string,
+            format: date,
+            description: 'Data de constituição ou de início no grupo; padrão: hoje',
+          }
+    UpdateLegalEntityRequest:
+      type: object
+      additionalProperties: false
+      description: Moeda funcional e país só mudam enquanto PLANNED.
+      properties:
+        legalName: { type: string, minLength: 1, maxLength: 200 }
+        tradeName: { type: [string, 'null'], maxLength: 200 }
+        legalForm: { type: [string, 'null'], maxLength: 40 }
+        functionalCurrency: { $ref: '#/components/schemas/CurrencyCode' }
+        timezone: { type: string }
+        defaultLocale: { type: string }
+        fiscalYearStartMonth: { type: integer, minimum: 1, maximum: 12 }
+        registeredAddress: { $ref: '#/components/schemas/PostalAddress' }
+    LifecycleRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        effectiveOn: { type: string, format: date, description: 'Padrão: hoje no fuso da entidade' }
+        reason: { type: string, maxLength: 500 }
+    GroupAssignmentRequest:
+      type: object
+      required: [economicGroupId, effectiveOn]
+      additionalProperties: false
+      properties:
+        economicGroupId:
+          { type: [string, 'null'], format: uuid, description: 'null retira a entidade do grupo' }
+        effectiveOn: { type: string, format: date }
+    LegalEntity:
+      type: object
+      required:
+        [
+          id,
+          code,
+          legalName,
+          tradeName,
+          country,
+          subdivision,
+          legalForm,
+          functionalCurrency,
+          timezone,
+          defaultLocale,
+          fiscalYearStartMonth,
+          registeredAddress,
+          incorporatedOn,
+          closedOn,
+          status,
+          asOf,
+          economicGroupId,
+          groupAssignments,
+          taxIdentifiers,
+          createdAt,
+          updatedAt,
+          version,
+        ]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        legalName: { type: string }
+        tradeName: { type: [string, 'null'] }
+        country: { $ref: '#/components/schemas/CountryCode' }
+        subdivision: { type: [string, 'null'] }
+        legalForm: { type: [string, 'null'] }
+        functionalCurrency: { $ref: '#/components/schemas/CurrencyCode' }
+        timezone: { type: string }
+        defaultLocale: { type: string }
+        fiscalYearStartMonth: { type: integer }
+        registeredAddress: { $ref: '#/components/schemas/PostalAddress' }
+        incorporatedOn: { type: [string, 'null'], format: date }
+        closedOn: { type: [string, 'null'], format: date }
+        status: { $ref: '#/components/schemas/LegalEntityStatus' }
+        asOf: { type: string, format: date }
+        economicGroupId:
+          { type: [string, 'null'], format: uuid, description: Grupo vigente em asOf }
+        groupAssignments:
+          type: array
+          items:
+            type: object
+            required: [economicGroupId, validFrom, validTo]
+            additionalProperties: false
+            properties:
+              economicGroupId: { type: string, format: uuid }
+              validFrom: { type: string, format: date }
+              validTo: { type: [string, 'null'], format: date }
+        taxIdentifiers: { type: array, items: { $ref: '#/components/schemas/TaxIdentifier' } }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    LegalEntityPage:
+      type: object
+      required: [items]
+      additionalProperties: false
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/LegalEntity' } }
+        nextCursor: { type: [string, 'null'] }
+    EstablishmentType: { enum: [HEADQUARTERS, BRANCH, PLANT, STORE, WAREHOUSE, OFFICE, OTHER] }
+    OpenEstablishmentRequest:
+      type: object
+      required: [legalEntityId, code, name, type, address]
+      additionalProperties: false
+      description: A entidade precisa estar ACTIVE; o endereço fica no país dela. No Brasil, o CNPJ tem a raiz do CNPJ da entidade.
+      properties:
+        legalEntityId: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        type: { $ref: '#/components/schemas/EstablishmentType' }
+        address: { $ref: '#/components/schemas/PostalAddress' }
+        timezone: { type: string, description: 'Padrão: fuso da entidade' }
+        taxIdentifiers:
+          {
+            type: array,
+            maxItems: 10,
+            items: { $ref: '#/components/schemas/TaxIdentifierRequest' },
+          }
+        openedOn: { type: string, format: date, description: 'Padrão: hoje' }
+    UpdateEstablishmentRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        type: { $ref: '#/components/schemas/EstablishmentType' }
+        address: { $ref: '#/components/schemas/PostalAddress' }
+        timezone: { type: string }
+    Establishment:
+      type: object
+      required:
+        [
+          id,
+          legalEntityId,
+          code,
+          name,
+          type,
+          address,
+          timezone,
+          status,
+          openedOn,
+          closedOn,
+          taxIdentifiers,
+          createdAt,
+          updatedAt,
+          version,
+        ]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        legalEntityId: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string }
+        type: { $ref: '#/components/schemas/EstablishmentType' }
+        address: { $ref: '#/components/schemas/PostalAddress' }
+        timezone: { type: string }
+        status: { enum: [ACTIVE, SUSPENDED, CLOSED] }
+        openedOn: { type: string, format: date }
+        closedOn: { type: [string, 'null'], format: date }
+        taxIdentifiers: { type: array, items: { $ref: '#/components/schemas/TaxIdentifier' } }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    EstablishmentPage:
+      type: object
+      required: [items]
+      additionalProperties: false
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Establishment' } }
+        nextCursor: { type: [string, 'null'] }
+    NameTranslations:
+      type: object
+      maxProperties: 20
+      additionalProperties: { type: string, minLength: 1, maxLength: 200 }
+      description: Traduções por idioma BCP 47 (ex. en, es)
+    CreateUnitTypeRequest:
+      type: object
+      required: [code, name]
+      additionalProperties: false
+      properties:
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+    UnitType:
+      type: object
+      required: [id, code, name, nameTranslations, createdAt, version]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+        createdAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    Nesting:
+      type: object
+      required: [unitTypeId, allowedParentTypeIds]
+      additionalProperties: false
+      properties:
+        unitTypeId: { type: string, format: uuid }
+        allowedParentTypeIds: { type: array, items: { type: string, format: uuid } }
+    CreateUnitRequest:
+      type: object
+      required: [code, name, unitTypeId]
+      additionalProperties: false
+      properties:
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+        unitTypeId: { type: string, format: uuid }
+        legalEntityId: { type: string, format: uuid }
+        establishmentId:
+          {
+            type: string,
+            format: uuid,
+            description: Exige legalEntityId (o estabelecimento pertence a ela),
+          }
+        validFrom: { type: string, format: date, description: 'Padrão: hoje (UTC)' }
+    UpdateUnitRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+        unitTypeId: { type: string, format: uuid }
+        legalEntityId: { type: [string, 'null'], format: uuid }
+        establishmentId: { type: [string, 'null'], format: uuid }
+    Unit:
+      type: object
+      required:
+        [
+          id,
+          code,
+          name,
+          nameTranslations,
+          unitTypeId,
+          legalEntityId,
+          establishmentId,
+          status,
+          validFrom,
+          closedOn,
+          createdAt,
+          updatedAt,
+          version,
+        ]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+        unitTypeId: { type: string, format: uuid }
+        legalEntityId: { type: [string, 'null'], format: uuid }
+        establishmentId: { type: [string, 'null'], format: uuid }
+        status: { enum: [ACTIVE, INACTIVE, CLOSED] }
+        validFrom: { type: string, format: date }
+        closedOn: { type: [string, 'null'], format: date }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    UnitPage:
+      type: object
+      required: [items]
+      additionalProperties: false
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Unit' } }
+        nextCursor: { type: [string, 'null'] }
+    CreateStructureRequest:
+      type: object
+      required: [code, name, purpose]
+      additionalProperties: false
+      properties:
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+        purpose: { enum: [MANAGEMENT, FUNCTIONAL, GEOGRAPHIC, CUSTOM] }
+    Structure:
+      type: object
+      required: [id, code, name, nameTranslations, purpose, createdAt, version]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+        purpose: { enum: [MANAGEMENT, FUNCTIONAL, GEOGRAPHIC, CUSTOM] }
+        createdAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    Tree:
+      type: object
+      required: [asOf, items, truncated]
+      additionalProperties: false
+      properties:
+        asOf: { type: string, format: date }
+        truncated: { type: boolean }
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              [
+                unitId,
+                code,
+                name,
+                nameTranslations,
+                unitTypeCode,
+                status,
+                parentUnitId,
+                depth,
+                hasChildren,
+              ]
+            additionalProperties: false
+            properties:
+              unitId: { type: string, format: uuid }
+              code: { type: string }
+              name: { type: string }
+              nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+              unitTypeCode: { type: string }
+              status: { enum: [ACTIVE, INACTIVE, CLOSED] }
+              parentUnitId: { type: [string, 'null'], format: uuid }
+              depth: { type: integer, minimum: 0 }
+              hasChildren: { type: boolean }
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+    ReorganizationStatus: { enum: [DRAFT, PENDING_APPROVAL, APPLIED, REJECTED, CANCELLED] }
+    Reorganization:
+      type: object
+      required: [id, structureId, description, effectiveOn, status, createdBy, version]
+      properties:
+        id: { type: string, format: uuid }
+        structureId: { type: string, format: uuid }
+        description: { type: string }
+        effectiveOn: { type: string, format: date }
+        status: { $ref: '#/components/schemas/ReorganizationStatus' }
+        createdBy: { type: string }
+        submittedBy: { type: [string, 'null'] }
+        decidedBy: { type: [string, 'null'] }
+        decisionNote: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    ReorganizationSteps:
+      type: object
+      required: [steps]
+      properties:
+        steps:
+          type: array
+          maxItems: 1000
+          items:
+            type: object
+            required: [operation]
+            additionalProperties: false
+            properties:
+              operation:
+                { enum: [MOVE_UNIT, REMOVE_UNIT, RENAME_UNIT, CLOSE_UNIT, REASSIGN_COST_CENTER] }
+              unitId: { type: [string, 'null'], format: uuid }
+              parentUnitId: { type: [string, 'null'], format: uuid }
+              name: { type: [string, 'null'], maxLength: 200 }
+              costCenterId: { type: [string, 'null'], format: uuid }
+              responsibleUnitId: { type: [string, 'null'], format: uuid }
+    TreeNode:
+      type: object
+      properties:
+        unitId: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        unitTypeCode: { type: string }
+        status: { type: string }
+        parentUnitId: { type: [string, 'null'], format: uuid }
+        depth: { type: integer, minimum: 0 }
+        hasChildren: { type: boolean }
+    CostCenter:
+      type: object
+      required: [id, legalEntityId, code, name, kind, category, status, validFrom, version]
+      properties:
+        id: { type: string, format: uuid }
+        legalEntityId: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        kind: { enum: [POSTABLE, GROUP] }
+        category: { type: string }
+        responsibleUnitId: { type: [string, 'null'], format: uuid }
+        status: { enum: [ACTIVE, BLOCKED, CLOSED] }
+        validFrom: { type: string, format: date }
+        closedOn: { type: [string, 'null'], format: date }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    ExternalParty:
+      type: object
+      required: [id, kind, name, hasTaxIdentifier]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { enum: [COMPANY, PERSON, FUND, OTHER] }
+        name: { type: string }
+        country: { type: [string, 'null'] }
+        hasTaxIdentifier: { type: boolean }
+    OwnershipInterest:
+      type: object
+      required:
+        [
+          id,
+          ownedLegalEntityId,
+          holderType,
+          holderId,
+          capitalPercentage,
+          votingPercentage,
+          validFrom,
+        ]
+      properties:
+        id: { type: string, format: uuid }
+        ownedLegalEntityId: { type: string, format: uuid }
+        ownedName: { type: string }
+        holderType: { enum: [LEGAL_ENTITY, EXTERNAL_PARTY] }
+        holderId: { type: string, format: uuid }
+        holderName: { type: string }
+        capitalPercentage: { type: number }
+        votingPercentage: { type: number }
+        shareClass: { type: [string, 'null'] }
+        validFrom: { type: string, format: date }
+        validTo: { type: [string, 'null'], format: date }
+    Holder:
+      type: object
+      required: [holderType, holderId, name]
+      properties:
+        holderType: { enum: [LEGAL_ENTITY, EXTERNAL_PARTY] }
+        holderId: { type: string, format: uuid }
+        name: { type: string }
+    OwnershipChart:
+      type: object
+      required: [asOf, legalEntityId, name, holders, edges, controlChain, ultimateController]
+      properties:
+        asOf: { type: string, format: date }
+        legalEntityId: { type: string, format: uuid }
+        name: { type: string }
+        holders:
+          type: array
+          items:
+            type: object
+            required: [holderType, holderId, name, depth, effectiveCapital]
+            properties:
+              holderType: { enum: [LEGAL_ENTITY, EXTERNAL_PARTY] }
+              holderId: { type: string, format: uuid }
+              name: { type: string }
+              depth: { type: integer, minimum: 1 }
+              effectiveCapital:
+                { type: number, description: 'Percentual efetivo no capital da entidade' }
+        edges: { type: array, items: { $ref: '#/components/schemas/OwnershipInterest' } }
+        controlChain: { type: array, items: { $ref: '#/components/schemas/Holder' } }
+        ultimateController:
+          oneOf: [{ $ref: '#/components/schemas/Holder' }, { type: 'null' }]
+    HistoryPage:
+      type: object
+      required: [items, nextAfter]
+      properties:
+        nextAfter: { type: [integer, 'null'] }
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              [sequence, aggregateType, aggregateId, action, actor, correlationId, occurredAt]
+            properties:
+              sequence: { type: integer }
+              aggregateType: { type: string }
+              aggregateId: { type: string, format: uuid }
+              action: { type: string }
+              actor: { type: string }
+              correlationId: { type: string }
+              occurredAt: { type: string, format: date-time }
+              before: { type: [object, 'null'] }
+              after: { type: [object, 'null'] }

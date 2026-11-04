@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:davinci:contracts:events:organization:v1:legal-entity-event",
+  "title": "Evento de legal-entity (CloudEvents 1.0, modo estruturado)",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "time",
+    "datacontenttype",
+    "dataschema",
+    "subject",
+    "tenantid",
+    "correlationid",
+    "data"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "source": {
+      "const": "/data-plane/organization"
+    },
+    "type": {
+      "enum": [
+        "br.com.davinci.organization.legal-entity.created.v1",
+        "br.com.davinci.organization.legal-entity.updated.v1",
+        "br.com.davinci.organization.legal-entity.activated.v1",
+        "br.com.davinci.organization.legal-entity.suspended.v1",
+        "br.com.davinci.organization.legal-entity.reactivated.v1",
+        "br.com.davinci.organization.legal-entity.closed.v1",
+        "br.com.davinci.organization.legal-entity.group-changed.v1",
+        "br.com.davinci.organization.legal-entity.tax-identifier-changed.v1"
+      ]
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "dataschema": {
+      "const": "urn:davinci:contracts:events:organization:v1:legal-entity-event"
+    },
+    "subject": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "tenantid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "correlationid": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "data": {
+      "$ref": "#/$defs/legalEntity"
+    }
+  },
+  "$defs": {
+    "legalEntity": {
+      "description": "Estado completo da entidade jurídica após o evento. economicGroupId = grupo vigente em effectiveOn; groupAssignments e taxIdentifiers com todo o histórico (cada item com sua vigência).",
+      "type": "object",
+      "required": [
+        "legalEntityId",
+        "tenantId",
+        "code",
+        "legalName",
+        "tradeName",
+        "country",
+        "subdivision",
+        "legalForm",
+        "functionalCurrency",
+        "timezone",
+        "defaultLocale",
+        "fiscalYearStartMonth",
+        "status",
+        "incorporatedOn",
+        "closedOn",
+        "effectiveOn",
+        "economicGroupId",
+        "groupAssignments",
+        "taxIdentifiers",
+        "version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "legalEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "tenantId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z0-9][A-Z0-9._-]{0,39}$"
+        },
+        "legalName": {
+          "type": "string"
+        },
+        "tradeName": {
+          "type": ["string", "null"]
+        },
+        "country": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$"
+        },
+        "subdivision": {
+          "type": ["string", "null"]
+        },
+        "legalForm": {
+          "type": ["string", "null"]
+        },
+        "functionalCurrency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "defaultLocale": {
+          "type": "string"
+        },
+        "fiscalYearStartMonth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "status": {
+          "enum": ["PLANNED", "ACTIVE", "SUSPENDED", "CLOSED"]
+        },
+        "incorporatedOn": {
+          "type": ["string", "null"],
+          "format": "date"
+        },
+        "closedOn": {
+          "type": ["string", "null"],
+          "format": "date"
+        },
+        "effectiveOn": {
+          "type": "string",
+          "format": "date"
+        },
+        "economicGroupId": {
+          "type": ["string", "null"],
+          "format": "uuid"
+        },
+        "groupAssignments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["economicGroupId", "validFrom", "validTo"],
+            "additionalProperties": false,
+            "properties": {
+              "economicGroupId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "validFrom": {
+                "type": "string",
+                "format": "date"
+              },
+              "validTo": {
+                "type": ["string", "null"],
+                "format": "date"
+              }
+            }
+          }
+        },
+        "taxIdentifiers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["scheme", "value", "primary", "validFrom", "validTo"],
+            "additionalProperties": false,
+            "properties": {
+              "scheme": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "primary": {
+                "type": "boolean"
+              },
+              "validFrom": {
+                "type": "string",
+                "format": "date"
+              },
+              "validTo": {
+                "type": ["string", "null"],
+                "format": "date"
+              }
+            }
+          }
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

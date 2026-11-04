@@ -7,3 +7,8 @@ CREATE DATABASE tenant_registry OWNER tenant_registry;
 
 CREATE ROLE identity LOGIN PASSWORD 'identity_dev';
 CREATE DATABASE identity OWNER identity;
+
+-- Organization: dois papéis para o Row-Level Security valer (a aplicação não é dona das tabelas).
+CREATE ROLE organization_owner LOGIN PASSWORD 'organization_owner_dev';
+CREATE ROLE organization_app LOGIN PASSWORD 'organization_app_dev';
+CREATE DATABASE organization OWNER organization_owner;

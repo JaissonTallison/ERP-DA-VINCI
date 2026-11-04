@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:davinci:contracts:events:organization:v1:cost-center-event",
+  "title": "Evento de centro de custo (CloudEvents 1.0, modo estruturado)",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "time",
+    "datacontenttype",
+    "dataschema",
+    "subject",
+    "tenantid",
+    "correlationid",
+    "data"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "source": {
+      "const": "/data-plane/organization"
+    },
+    "type": {
+      "enum": [
+        "br.com.davinci.organization.cost-center.created.v1",
+        "br.com.davinci.organization.cost-center.updated.v1",
+        "br.com.davinci.organization.cost-center.moved.v1",
+        "br.com.davinci.organization.cost-center.blocked.v1",
+        "br.com.davinci.organization.cost-center.unblocked.v1",
+        "br.com.davinci.organization.cost-center.closed.v1"
+      ]
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "dataschema": {
+      "const": "urn:davinci:contracts:events:organization:v1:cost-center-event"
+    },
+    "subject": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "tenantid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "correlationid": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "costCenterId",
+        "tenantId",
+        "legalEntityId",
+        "code",
+        "name",
+        "kind",
+        "category",
+        "responsibleUnitId",
+        "status",
+        "validFrom",
+        "closedOn",
+        "effectiveOn",
+        "parentId",
+        "version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "costCenterId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "tenantId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "legalEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": ["POSTABLE", "GROUP"]
+        },
+        "category": {
+          "type": "string"
+        },
+        "responsibleUnitId": {
+          "type": ["string", "null"],
+          "format": "uuid"
+        },
+        "status": {
+          "enum": ["ACTIVE", "BLOCKED", "CLOSED"]
+        },
+        "validFrom": {
+          "type": "string",
+          "format": "date"
+        },
+        "closedOn": {
+          "type": ["string", "null"],
+          "format": "date"
+        },
+        "effectiveOn": {
+          "type": "string",
+          "format": "date"
+        },
+        "parentId": {
+          "type": ["string", "null"],
+          "format": "uuid"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

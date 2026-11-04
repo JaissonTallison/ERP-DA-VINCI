@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:davinci:contracts:events:organization:v1:establishment-event",
+  "title": "Evento de estabelecimento (CloudEvents 1.0, modo estruturado)",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "time",
+    "datacontenttype",
+    "dataschema",
+    "subject",
+    "tenantid",
+    "correlationid",
+    "data"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "source": {
+      "const": "/data-plane/organization"
+    },
+    "type": {
+      "enum": [
+        "br.com.davinci.organization.establishment.created.v1",
+        "br.com.davinci.organization.establishment.updated.v1",
+        "br.com.davinci.organization.establishment.suspended.v1",
+        "br.com.davinci.organization.establishment.reactivated.v1",
+        "br.com.davinci.organization.establishment.closed.v1",
+        "br.com.davinci.organization.establishment.tax-identifier-changed.v1"
+      ]
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "dataschema": {
+      "const": "urn:davinci:contracts:events:organization:v1:establishment-event"
+    },
+    "subject": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "tenantid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "correlationid": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "data": {
+      "$ref": "#/$defs/establishment"
+    }
+  },
+  "$defs": {
+    "establishment": {
+      "type": "object",
+      "description": "Estado completo do estabelecimento após o evento; taxIdentifiers com todo o histórico.",
+      "required": [
+        "establishmentId",
+        "tenantId",
+        "legalEntityId",
+        "code",
+        "name",
+        "type",
+        "address",
+        "timezone",
+        "status",
+        "openedOn",
+        "closedOn",
+        "effectiveOn",
+        "taxIdentifiers",
+        "version"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "establishmentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "tenantId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "legalEntityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "enum": ["HEADQUARTERS", "BRANCH", "PLANT", "STORE", "WAREHOUSE", "OFFICE", "OTHER"]
+        },
+        "address": {
+          "type": "object",
+          "required": ["country", "addressLines", "locality", "administrativeArea", "postalCode"],
+          "additionalProperties": false,
+          "properties": {
+            "country": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            },
+            "addressLines": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "locality": {
+              "type": "string"
+            },
+            "administrativeArea": {
+              "type": ["string", "null"]
+            },
+            "postalCode": {
+              "type": ["string", "null"]
+            }
+          }
+        },
+        "timezone": {
+          "type": "string"
+        },
+        "status": {
+          "enum": ["ACTIVE", "SUSPENDED", "CLOSED"]
+        },
+        "openedOn": {
+          "type": "string",
+          "format": "date"
+        },
+        "closedOn": {
+          "type": ["string", "null"],
+          "format": "date"
+        },
+        "effectiveOn": {
+          "type": "string",
+          "format": "date"
+        },
+        "taxIdentifiers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["scheme", "value", "primary", "validFrom", "validTo"],
+            "additionalProperties": false,
+            "properties": {
+              "scheme": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "primary": {
+                "type": "boolean"
+              },
+              "validFrom": {
+                "type": "string",
+                "format": "date"
+              },
+              "validTo": {
+                "type": ["string", "null"],
+                "format": "date"
+              }
+            }
+          }
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

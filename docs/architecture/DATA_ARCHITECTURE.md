@@ -44,12 +44,13 @@
 
 ## Bancos do ambiente local
 
-| Banco             | Dono                         | Criado por                                   |
-| ----------------- | ---------------------------- | -------------------------------------------- |
-| `davinci`         | Uso geral do desenvolvimento | `compose.yaml`                               |
-| `keycloak`        | Keycloak                     | `infra/local/postgres/init/01-databases.sql` |
-| `tenant_registry` | Tenant Registry              | idem                                         |
-| `identity`        | Identity                     | idem                                         |
+| Banco             | Dono                                                                 | Criado por                                   |
+| ----------------- | -------------------------------------------------------------------- | -------------------------------------------- |
+| `davinci`         | Uso geral do desenvolvimento                                         | `compose.yaml`                               |
+| `keycloak`        | Keycloak                                                             | `infra/local/postgres/init/01-databases.sql` |
+| `tenant_registry` | Tenant Registry                                                      | idem                                         |
+| `identity`        | Identity                                                             | idem                                         |
+| `organization`    | Organization (papéis `organization_owner` e `organization_app`; RLS) | idem                                         |
 
 O script de inicialização só roda quando o volume é criado. Em ambiente já existente, crie o banco à mão ou recrie o volume (`docker compose down -v`, que apaga os dados locais).
 
