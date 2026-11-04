@@ -1,6 +1,6 @@
 /**
  * Barra no lint padrões visuais proibidos pelo guia de design
- * (docs/engineering/design-system.md): degradê, cantos maiores que 8 px,
+ * (docs/development/DESIGN_SYSTEM.md): degradê, cantos maiores que 8 px,
  * sombras pesadas e cor hexadecimal solta em classes utilitárias.
  */
 const forbidden = [

@@ -1,4 +1,4 @@
-/** Serviço Tenant Registry (Global Control Plane). Ver docs/services/tenant-registry.md. */
+/** Serviço Tenant Registry (Global Control Plane). Ver docs/services/TENANT_REGISTRY.md. */
 @NullMarked
 package br.com.davinci.erp.tenantregistry;
 

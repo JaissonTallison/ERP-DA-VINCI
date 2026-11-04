@@ -58,18 +58,19 @@
 
 ## Segurança da cadeia de software
 
-| Controle                                                   | Estado                                                        |
-| ---------------------------------------------------------- | ------------------------------------------------------------- |
-| Actions do GitHub fixadas por SHA                          | **Ativo** (Fase 1)                                            |
-| `permissions: contents: read` por padrão nos workflows     | **Ativo**                                                     |
-| Varredura de segredos (gitleaks) em toda PR                | **Ativo**                                                     |
-| Dependabot (npm, Gradle, Actions, Compose)                 | **Ativo**                                                     |
-| Checksum do Gradle wrapper e da distribuição               | **Ativo**                                                     |
-| Lockfile congelado no CI (`--frozen-lockfile`)             | **Ativo**                                                     |
-| SBOM CycloneDX por artefato implantável                    | **Ativo** (embutido no bootJar e exposto em `/actuator/sbom`) |
-| Assinatura de imagem (cosign/Sigstore) e proveniência SLSA | Fase 2                                                        |
-| SAST/DAST e varredura de imagens (ex.: Trivy)              | Fase 2                                                        |
-| Branch protection + revisão obrigatória + CODEOWNERS       | Configurar no GitHub ao publicar o repositório                |
+| Controle                                                                                              | Estado                                                                                  |
+| ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Actions do GitHub fixadas por SHA                                                                     | **Ativo** (Fase 1)                                                                      |
+| `permissions: contents: read` por padrão nos workflows                                                | **Ativo**                                                                               |
+| Varredura de segredos (gitleaks) em toda PR                                                           | **Ativo**                                                                               |
+| Dependabot (npm, Gradle, Actions, Compose)                                                            | **Ativo**                                                                               |
+| Checksum do Gradle wrapper e da distribuição                                                          | **Ativo**                                                                               |
+| Lockfile congelado no CI (`--frozen-lockfile`)                                                        | **Ativo**                                                                               |
+| SBOM CycloneDX por artefato implantável                                                               | **Ativo** (embutido no bootJar e exposto em `/actuator/sbom`)                           |
+| Assinatura de imagem (cosign/Sigstore) e proveniência SLSA                                            | Fase 2                                                                                  |
+| Varredura de vulnerabilidades das dependências (OSV-Scanner: `pnpm-lock.yaml` e SBOM de cada serviço) | **Ativo** (CI de frontend e backend; exceções com motivo e prazo em `osv-scanner.toml`) |
+| SAST/DAST e varredura de imagens de contêiner                                                         | Quando houver imagens de produção (ADR-0013)                                            |
+| Branch protection + revisão obrigatória + CODEOWNERS                                                  | Configurar no GitHub ao publicar o repositório                                          |
 
 ## Gestão de vulnerabilidades
 

@@ -9,15 +9,15 @@
 
 ## Código
 
-| Tema                 | Regra                                                                                                                       |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Linguagem do domínio | Nomes de código em inglês; textos de interface, mensagens de erro ao usuário, documentação e commits em português do Brasil |
-| TypeScript           | `strict` máximo; sem `any`, sem `@ts-ignore`; `import type` para tipos                                                      |
-| Java                 | Compilação com `-Xlint:all -Werror`; pacotes `@NullMarked`; `record` para valores; sem `null` em APIs públicas              |
-| Formatação           | Prettier (TS) e Spotless/palantir-java-format (Java), verificados no CI                                                     |
-| Dependências         | Nova dependência exige justificativa no PR (problema, alternativas, licença, manutenção)                                    |
-| Segredos             | Nunca no repositório; `.env` é ignorado; CI roda gitleaks                                                                   |
-| Dados de tenant      | `tenant_id` em toda tabela e evento de negócio                                                                              |
+| Tema                 | Regra                                                                                                                                          |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Linguagem do domínio | Nomes de código em inglês; textos de interface, mensagens de erro ao usuário, documentação e commits em português do Brasil                    |
+| TypeScript           | `strict` máximo; sem `any`, sem `@ts-ignore`; `import type` para tipos                                                                         |
+| Java                 | Compilação com `-Xlint:all -Werror`; pacotes `@NullMarked`; `record` para valores; sem `null` em APIs públicas                                 |
+| Formatação           | Prettier (TS) e Spotless/palantir-java-format (Java), verificados no CI                                                                        |
+| Dependências         | Nova dependência exige justificativa no PR (problema, alternativas, licença, manutenção); a CI barra vulnerabilidades conhecidas (OSV-Scanner) |
+| Segredos             | Nunca no repositório; `.env` é ignorado; CI roda gitleaks                                                                                      |
+| Dados de tenant      | `tenant_id` em toda tabela e evento de negócio                                                                                                 |
 
 ## Testes
 

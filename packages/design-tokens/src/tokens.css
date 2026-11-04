@@ -1,7 +1,7 @@
 /*
  * Tokens do Design System do ERP-DA-VINCI.
  * Fonte única de cores, tipografia, cantos e sombras. Consumido via Tailwind v4 (@theme).
- * Regras e motivação: docs/engineering/design-system.md
+ * Regras e motivação: docs/development/DESIGN_SYSTEM.md
  */
 @theme {
   /* Cores */

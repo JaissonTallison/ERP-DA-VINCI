@@ -5,7 +5,7 @@
 
 ## Contexto
 
-Foram definidos 20 bounded contexts (ver `docs/architecture/bounded-contexts.md`). Criar todos os serviços de uma vez geraria código vazio, contratos especulativos e custo operacional sem valor.
+Foram definidos 20 bounded contexts (ver `docs/architecture/MICROSERVICES_CATALOG.md`). Criar todos os serviços de uma vez geraria código vazio, contratos especulativos e custo operacional sem valor.
 
 ## Decisão
 

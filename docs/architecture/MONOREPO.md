@@ -38,6 +38,27 @@
 
 O pnpm **não** executa o Gradle, e o Gradle não conhece o `package.json`. Cada lado tem build, cache e pipeline independentes, disparados por filtro de caminho.
 
+## Estrutura do frontend (`apps/web/src`)
+
+```
+app/
+├── (app)/            # Área autenticada: layout exige sessão com tenant ativo
+├── auth/             # Login, callback, logout e erro (BFF OIDC)
+├── api/health/       # Liveness
+├── layout.tsx        # Raiz: fonte, metadados, providers
+└── providers.tsx     # TanStack Query (estado de servidor no navegador)
+components/
+├── layout/           # Barra superior, menu do usuário (estrutura de página)
+└── ui/               # Peças do Design System (botão…), sem regra de negócio
+server/               # Só no servidor (`server-only`): ambiente, OIDC, sessão, Redis
+```
+
+Módulos de negócio entram como rotas dentro de `(app)/<módulo>/`, com componentes próprios ao lado das rotas.
+
+## Por que não há `build.gradle.kts` na raiz
+
+As regras comuns do backend ficam em plugins de convenção (`build-logic/`), aplicados por cada projeto. Um `build.gradle.kts` na raiz seria vazio ou repetiria essas regras com `allprojects`/`subprojects`, padrão que o Gradle desaconselha (acopla projetos e atrapalha o cache de configuração).
+
 ## Regras de dependência
 
 1. `apps/*` podem depender de `packages/*`. `packages/*` nunca dependem de `apps/*`.

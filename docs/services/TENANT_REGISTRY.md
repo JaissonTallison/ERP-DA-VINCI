@@ -92,7 +92,10 @@ O banco `tenant_registry` e o realm `platform` são criados na **primeira** subi
 
 ## Variáveis de ambiente
 
-| Variável | Padrão local |
+> Credenciais e endereços de infraestrutura **não têm valor padrão**: sem a variável, o serviço não sobe (falha rápida, em vez de usar senha de desenvolvimento). Os valores de desenvolvimento ficam no perfil `local` (`application-local.yaml`), ativado automaticamente pelo `bootRun` e pelos testes. Para rodar o jar localmente: `java -jar <serviço>.jar --spring.profiles.active=local`.
+
+
+| Variável | Valor no perfil `local` |
 | --- | --- |
 | `PORT` | `5630` |
 | `DATABASE_URL` / `DATABASE_USERNAME` / `DATABASE_PASSWORD` | `jdbc:postgresql://localhost:5600/tenant_registry` / `tenant_registry` / `tenant_registry_dev` |

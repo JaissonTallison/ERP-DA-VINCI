@@ -57,9 +57,13 @@ docker compose down                                                # para (mant�
 docker compose down -v                                             # para e APAGA os dados locais
 ```
 
+## Serviços Java no ambiente local
+
+`./gradlew :<serviço>:bootRun` sobe o serviço com o perfil `local`, que aponta para o compose. Fora desse perfil, credenciais e endereços vêm só de variáveis de ambiente (não há senha padrão).
+
 ## Usuários de teste
 
-Depois de registrar e ativar um tenant, `scripts/dev/seed-identity.sh <slug>` cria `admin@<slug>.dev` (tenant-admin, com MFA) e `usuario@<slug>.dev` (senha `Davinci@dev2026`). Detalhes em [docs/services/identity.md](../services/identity.md).
+Depois de registrar e ativar um tenant, `scripts/dev/seed-identity.sh <slug>` cria `admin@<slug>.dev` (tenant-admin, com MFA) e `usuario@<slug>.dev` (senha `Davinci@dev2026`). Detalhes em [docs/services/IDENTITY.md](../services/IDENTITY.md).
 
 ## Verificação antes de abrir PR
 

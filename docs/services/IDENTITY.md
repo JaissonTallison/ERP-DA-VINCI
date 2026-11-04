@@ -62,7 +62,7 @@ docker compose --profile identity up -d
 ./gradlew :identity:bootRun               # 5631 (outro terminal)
 pnpm dev                                  # 5620
 
-# registre e ative um tenant (ver docs/services/tenant-registry.md) e crie usuários de teste:
+# registre e ative um tenant (ver docs/services/TENANT_REGISTRY.md) e crie usuários de teste:
 scripts/dev/seed-identity.sh acme
 ```
 
@@ -74,6 +74,8 @@ Localmente, Keycloak e web rodam em `localhost` e cookies não separam por porta
 
 ## Variáveis de ambiente
 
-Identity: `PORT` (5631), `DATABASE_URL` / `DATABASE_USERNAME` / `DATABASE_PASSWORD`, `KAFKA_BOOTSTRAP_SERVERS`, `KAFKA_TOPIC_REPLICAS`, `KEYCLOAK_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_CLIENT_SECRET`.
+> Credenciais e endereços de infraestrutura **não têm valor padrão**: sem a variável, o serviço não sobe (falha rápida, em vez de usar senha de desenvolvimento). Os valores de desenvolvimento ficam no perfil `local` (`application-local.yaml`), ativado automaticamente pelo `bootRun` e pelos testes. Para rodar o jar localmente: `java -jar <serviço>.jar --spring.profiles.active=local`.
+
+Identity, obrigatórias: `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `KAFKA_BOOTSTRAP_SERVERS`, `KEYCLOAK_URL`, `KEYCLOAK_CLIENT_SECRET`. Com padrão: `PORT` (5631), `KEYCLOAK_REALM` (davinci), `KEYCLOAK_CLIENT_ID` (identity-service), `KAFKA_TOPIC_REPLICAS` (1).
 
 Web: ver `apps/web/.env.example`. Em produção todas são obrigatórias; em desenvolvimento (`pnpm dev`) há padrões apontando para o compose.

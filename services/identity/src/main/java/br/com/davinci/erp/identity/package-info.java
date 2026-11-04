@@ -1,4 +1,4 @@
-/** Serviço Identity. Ver docs/services/identity.md. */
+/** Serviço Identity. Ver docs/services/IDENTITY.md. */
 @NullMarked
 package br.com.davinci.erp.identity;
 

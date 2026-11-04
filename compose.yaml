@@ -1,7 +1,7 @@
 # Ambiente LOCAL de desenvolvimento do ERP-DA-VINCI. Não é referência para produção.
 # Perfis: padrão (postgres, redis, kafka) · search · analytics · storage · identity · observability · full
 # Portas na faixa reservada ao ERP (5600–5699), para não colidir com outros projetos da máquina.
-# Uso e mapa de portas: docs/development/setup.md
+# Uso e mapa de portas: docs/development/LOCAL_DEVELOPMENT.md
 
 name: erp-da-vinci
 

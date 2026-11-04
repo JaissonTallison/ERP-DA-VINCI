@@ -14,7 +14,7 @@ O Tenant Registry é o primeiro serviço da plataforma e servirá de modelo para
 3. **Silo = célula de capacidade 1**, garantido no domínio e por `CHECK` no banco.
 4. **Transições idempotentes**: repetir uma transição já aplicada devolve o estado atual, sem evento e sem nova versão.
 5. **Criação idempotente** por `Idempotency-Key`, com impressão digital do corpo, gravada na mesma transação.
-6. **Sem Row-Level Security**: os dados são de plataforma, não de tenant (ver `docs/services/tenant-registry.md`).
+6. **Sem Row-Level Security**: os dados são de plataforma, não de tenant (ver `docs/services/TENANT_REGISTRY.md`).
 7. **Relay do outbox por polling** (500 ms) dentro do próprio serviço. CDC com Debezium fica para quando a latência ou o volume justificarem, pois é mais um componente para operar.
 
 ## Consequências

@@ -30,5 +30,5 @@ pnpm build
 - Sem `any`, sem `@ts-ignore`, sem dependência nova sem justificativa no PR.
 - Java compila com `-Xlint:all -Werror`; formatação verificada pelo Spotless (`./gradlew spotlessApply` corrige).
 - Todo dado de negócio carrega `tenant_id` (ADR-0004).
-- Interface segue `docs/engineering/design-system.md`; o lint barra degradê, cantos > 8 px, sombras pesadas e cor solta.
+- Interface segue `docs/development/DESIGN_SYSTEM.md`; o lint barra degradê, cantos > 8 px, sombras pesadas e cor solta.
 - Textos, commits e documentação em português do Brasil.

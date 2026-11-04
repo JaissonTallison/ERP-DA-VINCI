@@ -20,11 +20,11 @@ plugins {
 
 rootProject.name = "erp-da-vinci"
 
-// Bibliotecas técnicas compartilhadas (sem regra de negócio). Ver docs/architecture/monorepo.md.
+// Bibliotecas técnicas compartilhadas (sem regra de negócio). Ver docs/architecture/MONOREPO.md.
 include(":platform-kernel")
 project(":platform-kernel").projectDir = file("libs/java/platform-kernel")
 
-// Serviços de domínio: um por bounded context aprovado (docs/architecture/bounded-contexts.md).
+// Serviços de domínio: um por bounded context aprovado (docs/architecture/MICROSERVICES_CATALOG.md).
 include(":tenant-registry")
 project(":tenant-registry").projectDir = file("services/tenant-registry")
 include(":identity")

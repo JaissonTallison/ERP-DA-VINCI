@@ -6,13 +6,13 @@ Plataforma ERP multissetorial, global e multi-tenant — SaaS compartilhado e im
 
 ## Comece por aqui
 
-| Preciso…                   | Leia                                                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------ |
-| Subir o ambiente local     | [docs/development/setup.md](docs/development/setup.md)                               |
-| Entender a arquitetura     | [docs/architecture/global-architecture.md](docs/architecture/global-architecture.md) |
-| Ver os domínios do ERP     | [docs/architecture/bounded-contexts.md](docs/architecture/bounded-contexts.md)       |
-| Saber por que algo é assim | [docs/adr/](docs/adr/README.md)                                                      |
-| Contribuir com código      | [docs/engineering/standards.md](docs/engineering/standards.md)                       |
+| Preciso…                   | Leia                                                                                     |
+| -------------------------- | ---------------------------------------------------------------------------------------- |
+| Subir o ambiente local     | [docs/development/LOCAL_DEVELOPMENT.md](docs/development/LOCAL_DEVELOPMENT.md)           |
+| Entender a arquitetura     | [docs/architecture/SYSTEM_ARCHITECTURE.md](docs/architecture/SYSTEM_ARCHITECTURE.md)     |
+| Ver os domínios do ERP     | [docs/architecture/MICROSERVICES_CATALOG.md](docs/architecture/MICROSERVICES_CATALOG.md) |
+| Saber por que algo é assim | [docs/adr/](docs/adr/README.md)                                                          |
+| Contribuir com código      | [docs/development/ENGINEERING_STANDARDS.md](docs/development/ENGINEERING_STANDARDS.md)   |
 
 Índice completo: [docs/README.md](docs/README.md).
 
