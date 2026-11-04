@@ -1,0 +1,281 @@
+openapi: 3.1.0
+info:
+  title: Governance API
+  version: 1.0.0
+  description: |
+    Papéis, atribuições com escopo e vigência e segregação de funções. O tenant vem sempre do token;
+    recurso de outro tenant responde 404. Escrita: papel `tenant-admin` do token.
+servers:
+  - url: http://localhost:5633
+    description: Ambiente local
+security:
+  - bearer: []
+paths:
+  /v1/roles:
+    post:
+      operationId: createRole
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, name, permissions]
+              additionalProperties: false
+              properties:
+                code: { $ref: '#/components/schemas/BusinessCode' }
+                name: { type: string, minLength: 1, maxLength: 200 }
+                permissions: { $ref: '#/components/schemas/Permissions' }
+      responses:
+        '201': { $ref: '#/components/responses/Role' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listRoles
+      responses:
+        '200':
+          description: Papéis do tenant
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/Role' } }
+  /v1/roles/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getRole
+      responses:
+        '200': { $ref: '#/components/responses/Role' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updateRole
+      description: A mudança vale para quem já tem o papel; ferir segregação de funções responde 409.
+      parameters:
+        - { name: If-Match, in: header, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                name: { type: string, minLength: 1, maxLength: 200 }
+                permissions: { $ref: '#/components/schemas/Permissions' }
+      responses:
+        '200': { $ref: '#/components/responses/Role' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/roles/{id}/deactivate:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: deactivateRole
+      responses:
+        '200': { $ref: '#/components/responses/Role' }
+  /v1/assignments:
+    post:
+      operationId: grantRole
+      description: Quem concede não pode ser o próprio usuário; respeita a segregação de funções.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subject, roleId, scopeType]
+              additionalProperties: false
+              properties:
+                subject: { type: string, minLength: 1, maxLength: 200 }
+                roleId: { type: string, format: uuid }
+                scopeType: { $ref: '#/components/schemas/ScopeType' }
+                scopeId: { type: [string, 'null'], format: uuid }
+                validFrom: { type: string, format: date }
+      responses:
+        '201':
+          description: Atribuição
+          content: { application/json: { schema: { $ref: '#/components/schemas/Assignment' } } }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listAssignments
+      parameters:
+        - { name: roleId, in: query, schema: { type: string, format: uuid } }
+        - { name: activeOn, in: query, schema: { type: string, format: date } }
+      responses:
+        '200': { $ref: '#/components/responses/Assignments' }
+  /v1/assignments/{id}/revoke:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: revokeAssignment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: { effectiveOn: { type: string, format: date } }
+      responses:
+        '200':
+          description: Atribuição encerrada
+          content: { application/json: { schema: { $ref: '#/components/schemas/Assignment' } } }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/subjects/{subject}/access:
+    parameters:
+      - { name: subject, in: path, required: true, schema: { type: string } }
+      - { name: asOf, in: query, schema: { type: string, format: date } }
+    get:
+      operationId: subjectAccess
+      description: Atribuições vigentes na data; papel inativo não concede nada.
+      responses:
+        '200': { $ref: '#/components/responses/Assignments' }
+  /v1/sod-rules:
+    post:
+      operationId: createSodRule
+      description: Só entra se ninguém estiver ferindo a regra.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, description, permissionA, permissionB]
+              additionalProperties: false
+              properties:
+                code: { $ref: '#/components/schemas/BusinessCode' }
+                description: { type: string, minLength: 1, maxLength: 500 }
+                permissionA: { type: string }
+                permissionB: { type: string }
+      responses:
+        '201':
+          description: Regra
+          content: { application/json: { schema: { $ref: '#/components/schemas/SodRule' } } }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listSodRules
+      responses:
+        '200':
+          description: Regras de segregação
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/SodRule' } }
+  /v1/sod-rules/{id}/deactivate:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: deactivateSodRule
+      responses:
+        '204': { description: Regra desativada }
+  /v1/history/{aggregateType}/{id}:
+    parameters:
+      - { name: aggregateType, in: path, required: true, schema: { type: string } }
+      - { $ref: '#/components/parameters/Id' }
+    get:
+      operationId: history
+      description: Trilha de auditoria de um registro (só administradores).
+      responses:
+        '200':
+          description: Entradas da auditoria
+          content: { application/json: { schema: { type: object } } }
+  /v1/changes:
+    get:
+      operationId: changes
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: aggregateType, in: query, schema: { type: string } }
+        - { name: after, in: query, schema: { type: integer, minimum: 0 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 1000 } }
+      responses:
+        '200':
+          description: Entradas da auditoria no período
+          content: { application/json: { schema: { type: object } } }
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    Id: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+  responses:
+    Role:
+      description: Papel
+      content: { application/json: { schema: { $ref: '#/components/schemas/Role' } } }
+    Assignments:
+      description: Atribuições
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [items]
+            properties:
+              items: { type: array, items: { $ref: '#/components/schemas/Assignment' } }
+    Problem:
+      description: Erro RFC 9457
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+  schemas:
+    BusinessCode: { type: string, pattern: '^[A-Z0-9][A-Z0-9._-]{0,39}$' }
+    Permissions:
+      type: array
+      minItems: 1
+      maxItems: 500
+      items: { type: string, pattern: '^[a-z][a-z-]*(:[a-z][a-z-]*){1,3}$' }
+    ScopeType: { enum: [TENANT, ECONOMIC_GROUP, LEGAL_ENTITY, ESTABLISHMENT, UNIT] }
+    Role:
+      type: object
+      required: [id, code, name, permissions, status, version]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        permissions: { $ref: '#/components/schemas/Permissions' }
+        status: { enum: [ACTIVE, INACTIVE] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    Assignment:
+      type: object
+      required:
+        [
+          id,
+          subject,
+          roleId,
+          roleCode,
+          permissions,
+          scopeType,
+          scopeId,
+          validFrom,
+          validTo,
+          grantedBy,
+        ]
+      properties:
+        id: { type: string, format: uuid }
+        subject: { type: string }
+        roleId: { type: string, format: uuid }
+        roleCode: { type: string }
+        permissions: { $ref: '#/components/schemas/Permissions' }
+        scopeType: { $ref: '#/components/schemas/ScopeType' }
+        scopeId: { type: [string, 'null'], format: uuid }
+        validFrom: { type: string, format: date }
+        validTo: { type: [string, 'null'], format: date }
+        grantedBy: { type: string }
+    SodRule:
+      type: object
+      required: [id, code, description, permissionA, permissionB, active]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        description: { type: string }
+        permissionA: { type: string }
+        permissionB: { type: string }
+        active: { type: boolean }
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }

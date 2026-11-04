@@ -53,6 +53,9 @@ Envelope e dados na mesma mensagem JSON (`application/cloudevents+json`):
 | `organization.reorganization.v1`             | Organization          | Futuros (Workflow, Analytics)                     | `contracts/events/organization/v1/`    |
 | `organization.cost-center.v1`                | Organization          | Futuros (Accounting, Finance, Analytics)          | `contracts/events/organization/v1/`    |
 | `organization.ownership.v1`                  | Organization          | Futuros (Accounting/consolidação, Analytics)      | `contracts/events/organization/v1/`    |
+| `governance.role.v1`                         | Governance            | Futuros (todos os serviços)                       | `contracts/events/governance/v1/`      |
+| `governance.assignment.v1`                   | Governance            | Futuros (todos os serviços)                       | `contracts/events/governance/v1/`      |
+| `tenant-registry.tenant.v1.governance-dlt`   | Governance (falhas)   | Operação                                          | Mensagem original, sem transformação   |
 
 ## Garantias do produtor: Transactional Outbox
 

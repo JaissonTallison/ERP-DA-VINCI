@@ -1,6 +1,6 @@
 # ADR-0013: Estratégia de infraestrutura de produção
 
-- Estado: **Proposto** — aguarda aprovação antes de qualquer recurso de produção ser criado
+- Estado: Aceito (2026-11-04)
 - Data: 2026-11-03
 
 ## Proposta

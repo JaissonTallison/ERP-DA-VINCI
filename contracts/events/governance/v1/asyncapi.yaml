@@ -1,0 +1,32 @@
+asyncapi: 3.0.0
+info:
+  title: Eventos do Governance
+  version: 1.0.0
+  description: |
+    Papéis e atribuições. Entrega pelo menos uma vez (outbox), ordem por agregado (chave = id do agregado).
+    Papéis trazem `version`; atribuições só têm dois fatos, concessão e revogação, deduplicados por `id`.
+defaultContentType: application/cloudevents+json
+channels:
+  role:
+    address: governance.role.v1
+    messages:
+      roleEvent:
+        contentType: application/cloudevents+json
+        payload:
+          schemaFormat: application/schema+json;version=draft-2020-12
+          schema: { $ref: './role-event.schema.json' }
+  assignment:
+    address: governance.assignment.v1
+    messages:
+      assignmentEvent:
+        contentType: application/cloudevents+json
+        payload:
+          schemaFormat: application/schema+json;version=draft-2020-12
+          schema: { $ref: './assignment-event.schema.json' }
+operations:
+  publishRole:
+    action: send
+    channel: { $ref: '#/channels/role' }
+  publishAssignment:
+    action: send
+    channel: { $ref: '#/channels/assignment' }

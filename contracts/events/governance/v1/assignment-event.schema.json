@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:davinci:contracts:events:governance:v1:assignment-event",
+  "title": "Evento de atribuição de papel (CloudEvents 1.0, modo estruturado)",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "time",
+    "datacontenttype",
+    "dataschema",
+    "subject",
+    "tenantid",
+    "correlationid",
+    "data"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "source": {
+      "const": "/data-plane/governance"
+    },
+    "type": {
+      "enum": [
+        "br.com.davinci.governance.assignment.granted.v1",
+        "br.com.davinci.governance.assignment.revoked.v1"
+      ]
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "dataschema": {
+      "const": "urn:davinci:contracts:events:governance:v1:assignment-event"
+    },
+    "subject": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "tenantid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "correlationid": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "assignmentId",
+        "tenantId",
+        "subject",
+        "roleId",
+        "roleCode",
+        "scopeType",
+        "scopeId",
+        "validFrom",
+        "validTo",
+        "grantedBy",
+        "effectiveOn"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "assignmentId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "tenantId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "roleId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "roleCode": {
+          "type": "string"
+        },
+        "scopeType": {
+          "enum": ["TENANT", "ECONOMIC_GROUP", "LEGAL_ENTITY", "ESTABLISHMENT", "UNIT"]
+        },
+        "scopeId": {
+          "type": ["string", "null"],
+          "format": "uuid"
+        },
+        "validFrom": {
+          "type": "string",
+          "format": "date"
+        },
+        "validTo": {
+          "type": ["string", "null"],
+          "format": "date"
+        },
+        "grantedBy": {
+          "type": "string"
+        },
+        "effectiveOn": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    }
+  }
+}

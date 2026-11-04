@@ -304,6 +304,28 @@
           }
         }
       ]
+    },
+    {
+      "name": "governance-api",
+      "description": "Audiência do serviço Governance: o token do frontend pode chamar a API dele",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience governance",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "governance",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
     }
   ],
   "defaultDefaultClientScopes": ["basic", "profile", "email", "roles", "acr"],
@@ -334,7 +356,8 @@
         "roles",
         "acr",
         "organization",
-        "organization-api"
+        "organization-api",
+        "governance-api"
       ],
       "optionalClientScopes": []
     },
