@@ -3,7 +3,7 @@ info:
   title: Eventos do Organization Management
   version: 1.0.0
   description: |
-    Estrutura corporativa (grupos econômicos, entidades jurídicas e estabelecimentos). Estado completo em `data`, com `version`:
+    Estrutura corporativa (grupos econômicos, entidades jurídicas, estabelecimentos e unidades organizacionais). Estado completo em `data`, com `version`:
     consumidores descartam versões já aplicadas e deduplicam por `id`. Entrega pelo menos uma vez (outbox),
     ordem garantida por agregado (chave = id do agregado). Ver docs/domains/organization/ORGANIZATION_EVENTS.md.
 defaultContentType: application/cloudevents+json
@@ -32,6 +32,14 @@ channels:
         payload:
           schemaFormat: application/schema+json;version=draft-2020-12
           schema: { $ref: './establishment-event.schema.json' }
+  unit:
+    address: organization.unit.v1
+    messages:
+      unitEvent:
+        contentType: application/cloudevents+json
+        payload:
+          schemaFormat: application/schema+json;version=draft-2020-12
+          schema: { $ref: './unit-event.schema.json' }
 operations:
   publishEconomicGroup:
     action: send
@@ -42,3 +50,6 @@ operations:
   publishEstablishment:
     action: send
     channel: { $ref: '#/channels/establishment' }
+  publishUnit:
+    action: send
+    channel: { $ref: '#/channels/unit' }

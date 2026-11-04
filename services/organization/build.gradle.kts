@@ -27,3 +27,18 @@ dependencies {
     testImplementation(libs.json.schema.validator)
     testImplementation(libs.archunit.junit5)
 }
+
+// Critérios de aceite com tempo rodam sob demanda (./gradlew :organization:performanceTest), numa JVM só deles e com
+// a máquina livre: no build comum, os contextos de outros testes e os testes de outros serviços distorcem a medição.
+tasks.test {
+    useJUnitPlatform { excludeTags("desempenho") }
+}
+
+val performanceTest by tasks.registering(Test::class) {
+    description = "Testes de desempenho (critérios de aceite com tempo)."
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    useJUnitPlatform { includeTags("desempenho") }
+    shouldRunAfter(tasks.test)
+}

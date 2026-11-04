@@ -242,10 +242,12 @@ public class LegalEntityRepository {
         taxes.end(taxIdentifierId, on);
     }
 
-    /** Estabelecimentos não encerrados da entidade (impedem o encerramento dela). */
-    public boolean hasOpenEstablishments(UUID entityId) {
-        return jdbc.sql("SELECT EXISTS (SELECT 1 FROM establishment WHERE legal_entity_id = ? AND status <> 'CLOSED')")
-                .param(entityId)
+    /** Estabelecimentos ou unidades não encerrados ligados à entidade (impedem o encerramento dela). */
+    public boolean hasOpenDependents(UUID entityId) {
+        return jdbc.sql(
+                        "SELECT EXISTS (SELECT 1 FROM establishment WHERE legal_entity_id = ? AND status <> 'CLOSED')"
+                                + " OR EXISTS (SELECT 1 FROM organizational_unit WHERE legal_entity_id = ? AND status <> 'CLOSED')")
+                .params(entityId, entityId)
                 .query(Boolean.class)
                 .single();
     }

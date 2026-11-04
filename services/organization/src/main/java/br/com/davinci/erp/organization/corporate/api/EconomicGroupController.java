@@ -5,13 +5,13 @@ import br.com.davinci.erp.organization.corporate.api.Representations.EconomicGro
 import br.com.davinci.erp.organization.corporate.api.Representations.EconomicGroupResponse;
 import br.com.davinci.erp.organization.corporate.api.Representations.LegalEntityPage;
 import br.com.davinci.erp.organization.corporate.api.Representations.LegalEntityResponse;
-import br.com.davinci.erp.organization.corporate.api.Representations.LifecycleRequest;
 import br.com.davinci.erp.organization.corporate.application.Commands;
 import br.com.davinci.erp.organization.corporate.application.EconomicGroupService;
 import br.com.davinci.erp.organization.corporate.application.LegalEntityService;
 import br.com.davinci.erp.organization.corporate.domain.EconomicGroup;
 import br.com.davinci.erp.organization.corporate.domain.EconomicGroupStatus;
 import br.com.davinci.erp.organization.shared.web.Cursor;
+import br.com.davinci.erp.organization.shared.web.LifecycleBody;
 import br.com.davinci.erp.organization.shared.web.Versions;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -101,7 +101,7 @@ class EconomicGroupController {
 
     @PostMapping("/{id}/close")
     ResponseEntity<EconomicGroupResponse> close(
-            @PathVariable UUID id, @Valid @RequestBody(required = false) @Nullable LifecycleRequest body) {
+            @PathVariable UUID id, @Valid @RequestBody(required = false) @Nullable LifecycleBody body) {
         EconomicGroup group = groups.close(id, body == null ? null : body.effectiveOn());
         return ResponseEntity.ok().eTag(Versions.etag(group.version())).body(EconomicGroupResponse.from(group));
     }

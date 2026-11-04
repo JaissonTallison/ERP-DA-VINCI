@@ -3,7 +3,7 @@ info:
   title: Organization Management API
   version: 1.0.0
   description: |
-    Estrutura corporativa do cliente: grupos econômicos, entidades jurídicas (etapa 2) e estabelecimentos (etapa 3).
+    Estrutura corporativa do cliente: grupos econômicos, entidades jurídicas (etapa 2), estabelecimentos (etapa 3) e estrutura organizacional com vigência (etapa 4).
     O tenant vem sempre do token (claim `organization`); recurso de outro tenant responde 404.
     Modelo de domínio: docs/domains/organization/ORGANIZATION_DOMAIN_MODEL.md.
 servers:
@@ -273,6 +273,291 @@ paths:
       responses:
         '200': { $ref: '#/components/responses/Establishment' }
         '404': { $ref: '#/components/responses/Problem' }
+  /v1/unit-types:
+    post:
+      operationId: createUnitType
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/CreateUnitTypeRequest' } } }
+      responses:
+        '201':
+          {
+            description: Tipo criado,
+            content: { application/json: { schema: { $ref: '#/components/schemas/UnitType' } } },
+          }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listUnitTypes
+      responses:
+        '200':
+          description: Tipos do tenant
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    {
+                      type: object,
+                      required: [items],
+                      properties:
+                        {
+                          items: { type: array, items: { $ref: '#/components/schemas/UnitType' } },
+                        },
+                    },
+                },
+            }
+  /v1/unit-types/{id}/nesting:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getNesting
+      responses:
+        '200':
+          {
+            description: Tipos permitidos como pai (vazio = qualquer),
+            content: { application/json: { schema: { $ref: '#/components/schemas/Nesting' } } },
+          }
+    put:
+      operationId: setNesting
+      requestBody:
+        required: true
+        content:
+          {
+            application/json:
+              {
+                schema:
+                  {
+                    type: object,
+                    required: [allowedParentTypeIds],
+                    additionalProperties: false,
+                    properties:
+                      {
+                        allowedParentTypeIds:
+                          {
+                            type: array,
+                            maxItems: 100,
+                            uniqueItems: true,
+                            items: { type: string, format: uuid },
+                          },
+                      },
+                  },
+              },
+          }
+      responses:
+        '200':
+          {
+            description: Regras gravadas,
+            content: { application/json: { schema: { $ref: '#/components/schemas/Nesting' } } },
+          }
+  /v1/organizational-units:
+    post:
+      operationId: createUnit
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/CreateUnitRequest' } } }
+      responses:
+        '201': { $ref: '#/components/responses/Unit' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listUnits
+      parameters:
+        - { name: unitTypeId, in: query, schema: { type: string, format: uuid } }
+        - { name: legalEntityId, in: query, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { enum: [ACTIVE, INACTIVE, CLOSED] } }
+        - { name: q, in: query, schema: { type: string, maxLength: 100 } }
+        - { $ref: '#/components/parameters/Limit' }
+        - { $ref: '#/components/parameters/Cursor' }
+      responses:
+        '200':
+          {
+            description: Página de unidades,
+            content: { application/json: { schema: { $ref: '#/components/schemas/UnitPage' } } },
+          }
+  /v1/organizational-units/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getUnit
+      responses:
+        '200': { $ref: '#/components/responses/Unit' }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      operationId: updateUnit
+      parameters: [{ $ref: '#/components/parameters/IfMatch' }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/merge-patch+json:
+              { schema: { $ref: '#/components/schemas/UpdateUnitRequest' } },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/Unit' }
+        '412': { $ref: '#/components/responses/Problem' }
+  /v1/organizational-units/{id}/{transition}:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - {
+          name: transition,
+          in: path,
+          required: true,
+          schema: { enum: [deactivate, reactivate, close] },
+        }
+    post:
+      operationId: transitionUnit
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/LifecycleRequest' } } }
+      responses:
+        '200': { $ref: '#/components/responses/Unit' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/structures:
+    post:
+      operationId: createStructure
+      requestBody:
+        required: true
+        content:
+          { application/json: { schema: { $ref: '#/components/schemas/CreateStructureRequest' } } }
+      responses:
+        '201':
+          {
+            description: Estrutura criada,
+            content: { application/json: { schema: { $ref: '#/components/schemas/Structure' } } },
+          }
+        '409': { $ref: '#/components/responses/Problem' }
+    get:
+      operationId: listStructures
+      responses:
+        '200':
+          description: Estruturas do tenant
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    {
+                      type: object,
+                      required: [items],
+                      properties:
+                        {
+                          items: { type: array, items: { $ref: '#/components/schemas/Structure' } },
+                        },
+                    },
+                },
+            }
+  /v1/structures/{id}:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    get:
+      operationId: getStructure
+      responses:
+        '200':
+          {
+            description: Estrutura,
+            content: { application/json: { schema: { $ref: '#/components/schemas/Structure' } } },
+          }
+        '404': { $ref: '#/components/responses/Problem' }
+  /v1/structures/{id}/moves:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: moveUnit
+      summary: Posiciona ou move a unidade a partir de effectiveOn (pai nulo = raiz). Datas futuras são aceitas.
+      requestBody:
+        required: true
+        content:
+          {
+            application/json:
+              {
+                schema:
+                  {
+                    type: object,
+                    required: [unitId, effectiveOn],
+                    additionalProperties: false,
+                    properties:
+                      {
+                        unitId: { type: string, format: uuid },
+                        parentUnitId: { type: [string, 'null'], format: uuid },
+                        effectiveOn: { type: string, format: date },
+                      },
+                  },
+              },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/Unit' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/structures/{id}/removals:
+    parameters: [{ $ref: '#/components/parameters/Id' }]
+    post:
+      operationId: removeUnit
+      requestBody:
+        required: true
+        content:
+          {
+            application/json:
+              {
+                schema:
+                  {
+                    type: object,
+                    required: [unitId, effectiveOn],
+                    additionalProperties: false,
+                    properties:
+                      {
+                        unitId: { type: string, format: uuid },
+                        effectiveOn: { type: string, format: date },
+                      },
+                  },
+              },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/Unit' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /v1/structures/{id}/roots:
+    parameters: [{ $ref: '#/components/parameters/Id' }, { $ref: '#/components/parameters/AsOf' }]
+    get:
+      operationId: getRoots
+      responses:
+        '200': { $ref: '#/components/responses/Tree' }
+  /v1/structures/{id}/units/{unitId}/children:
+    parameters:
+      [
+        { $ref: '#/components/parameters/Id' },
+        { $ref: '#/components/parameters/UnitId' },
+        { $ref: '#/components/parameters/AsOf' },
+      ]
+    get:
+      operationId: getChildren
+      responses:
+        '200': { $ref: '#/components/responses/Tree' }
+  /v1/structures/{id}/units/{unitId}/subtree:
+    parameters:
+      - { $ref: '#/components/parameters/Id' }
+      - { $ref: '#/components/parameters/UnitId' }
+      - { $ref: '#/components/parameters/AsOf' }
+      - {
+          name: maxDepth,
+          in: query,
+          schema: { type: integer, minimum: 0, maximum: 64, default: 64 },
+        }
+      - {
+          name: limit,
+          in: query,
+          schema: { type: integer, minimum: 1, maximum: 50000, default: 10000 },
+        }
+    get:
+      operationId: getSubtree
+      responses:
+        '200': { $ref: '#/components/responses/Tree' }
+  /v1/structures/{id}/units/{unitId}/ancestors:
+    parameters:
+      [
+        { $ref: '#/components/parameters/Id' },
+        { $ref: '#/components/parameters/UnitId' },
+        { $ref: '#/components/parameters/AsOf' },
+      ]
+    get:
+      operationId: getAncestors
+      responses:
+        '200': { $ref: '#/components/responses/Tree' }
 components:
   securitySchemes:
     bearer: { type: http, scheme: bearer, bearerFormat: JWT }
@@ -288,6 +573,7 @@ components:
     Limit:
       { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
     Cursor: { name: cursor, in: query, schema: { type: string } }
+    UnitId: { name: unitId, in: path, required: true, schema: { type: string, format: uuid } }
     IdempotencyKey:
       {
         name: Idempotency-Key,
@@ -310,6 +596,12 @@ components:
     LegalEntity:
       description: Entidade jurídica
       content: { application/json: { schema: { $ref: '#/components/schemas/LegalEntity' } } }
+    Unit:
+      description: Unidade organizacional
+      content: { application/json: { schema: { $ref: '#/components/schemas/Unit' } } }
+    Tree:
+      description: Nós da estrutura na data (lista plana com parentUnitId e depth)
+      content: { application/json: { schema: { $ref: '#/components/schemas/Tree' } } }
     Establishment:
       description: Estabelecimento
       content: { application/json: { schema: { $ref: '#/components/schemas/Establishment' } } }
@@ -601,6 +893,158 @@ components:
       properties:
         items: { type: array, items: { $ref: '#/components/schemas/Establishment' } }
         nextCursor: { type: [string, 'null'] }
+    NameTranslations:
+      type: object
+      maxProperties: 20
+      additionalProperties: { type: string, minLength: 1, maxLength: 200 }
+      description: Traduções por idioma BCP 47 (ex. en, es)
+    CreateUnitTypeRequest:
+      type: object
+      required: [code, name]
+      additionalProperties: false
+      properties:
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+    UnitType:
+      type: object
+      required: [id, code, name, nameTranslations, createdAt, version]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+        createdAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    Nesting:
+      type: object
+      required: [unitTypeId, allowedParentTypeIds]
+      additionalProperties: false
+      properties:
+        unitTypeId: { type: string, format: uuid }
+        allowedParentTypeIds: { type: array, items: { type: string, format: uuid } }
+    CreateUnitRequest:
+      type: object
+      required: [code, name, unitTypeId]
+      additionalProperties: false
+      properties:
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+        unitTypeId: { type: string, format: uuid }
+        legalEntityId: { type: string, format: uuid }
+        establishmentId:
+          {
+            type: string,
+            format: uuid,
+            description: Exige legalEntityId (o estabelecimento pertence a ela),
+          }
+        validFrom: { type: string, format: date, description: 'Padrão: hoje (UTC)' }
+    UpdateUnitRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+        unitTypeId: { type: string, format: uuid }
+        legalEntityId: { type: [string, 'null'], format: uuid }
+        establishmentId: { type: [string, 'null'], format: uuid }
+    Unit:
+      type: object
+      required:
+        [
+          id,
+          code,
+          name,
+          nameTranslations,
+          unitTypeId,
+          legalEntityId,
+          establishmentId,
+          status,
+          validFrom,
+          closedOn,
+          createdAt,
+          updatedAt,
+          version,
+        ]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+        unitTypeId: { type: string, format: uuid }
+        legalEntityId: { type: [string, 'null'], format: uuid }
+        establishmentId: { type: [string, 'null'], format: uuid }
+        status: { enum: [ACTIVE, INACTIVE, CLOSED] }
+        validFrom: { type: string, format: date }
+        closedOn: { type: [string, 'null'], format: date }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    UnitPage:
+      type: object
+      required: [items]
+      additionalProperties: false
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Unit' } }
+        nextCursor: { type: [string, 'null'] }
+    CreateStructureRequest:
+      type: object
+      required: [code, name, purpose]
+      additionalProperties: false
+      properties:
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+        purpose: { enum: [MANAGEMENT, FUNCTIONAL, GEOGRAPHIC, CUSTOM] }
+    Structure:
+      type: object
+      required: [id, code, name, nameTranslations, purpose, createdAt, version]
+      additionalProperties: false
+      properties:
+        id: { type: string, format: uuid }
+        code: { $ref: '#/components/schemas/BusinessCode' }
+        name: { type: string }
+        nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+        purpose: { enum: [MANAGEMENT, FUNCTIONAL, GEOGRAPHIC, CUSTOM] }
+        createdAt: { type: string, format: date-time }
+        version: { type: integer, minimum: 0 }
+    Tree:
+      type: object
+      required: [asOf, items, truncated]
+      additionalProperties: false
+      properties:
+        asOf: { type: string, format: date }
+        truncated: { type: boolean }
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              [
+                unitId,
+                code,
+                name,
+                nameTranslations,
+                unitTypeCode,
+                status,
+                parentUnitId,
+                depth,
+                hasChildren,
+              ]
+            additionalProperties: false
+            properties:
+              unitId: { type: string, format: uuid }
+              code: { type: string }
+              name: { type: string }
+              nameTranslations: { $ref: '#/components/schemas/NameTranslations' }
+              unitTypeCode: { type: string }
+              status: { enum: [ACTIVE, INACTIVE, CLOSED] }
+              parentUnitId: { type: [string, 'null'], format: uuid }
+              depth: { type: integer, minimum: 0 }
+              hasChildren: { type: boolean }
     Problem:
       type: object
       required: [type, title, status]

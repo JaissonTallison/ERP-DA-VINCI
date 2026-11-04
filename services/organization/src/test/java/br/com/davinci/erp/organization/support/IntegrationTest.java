@@ -22,6 +22,8 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -88,17 +90,22 @@ public abstract class IntegrationTest {
     }
 
     private static JwtRequestPostProcessor token(UUID tenant, String role) {
-        return jwt().jwt(jwt -> jwt.subject("user-" + role)
-                        .claim(
-                                "organization",
-                                Map.of(
-                                        "t" + tenant.toString().substring(0, 8),
-                                        Map.of(
-                                                "id",
-                                                UUID.randomUUID().toString(),
-                                                "tenant_id",
-                                                List.of(tenant.toString())))))
-                .authorities(new SimpleGrantedAuthority("ROLE_" + role));
+        JwtAuthenticationToken authentication = authentication(tenant, role);
+        return jwt().jwt(authentication.getToken()).authorities(authentication.getAuthorities());
+    }
+
+    /** O mesmo usuário de {@link #user(UUID)}, para chamadas diretas aos beans, sem passar pelo MockMvc. */
+    protected static JwtAuthenticationToken authentication(UUID tenant, String role) {
+        Jwt jwt = Jwt.withTokenValue("teste")
+                .header("alg", "none")
+                .subject("user-" + role)
+                .claim(
+                        "organization",
+                        Map.of(
+                                "t" + tenant.toString().substring(0, 8),
+                                Map.of("id", UUID.randomUUID().toString(), "tenant_id", List.of(tenant.toString()))))
+                .build();
+        return new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
     }
 
     /** Novo tenant ativo, recebido pelo consumidor como num ambiente real. */

@@ -111,10 +111,6 @@ final class Representations {
             @Nullable String status,
             @Nullable LocalDate effectiveOn) {}
 
-    record LifecycleRequest(
-            @Nullable LocalDate effectiveOn,
-            @Size(max = 500) @Nullable String reason) {}
-
     record GroupAssignmentRequest(
             @Nullable UUID economicGroupId,
             @NotNull @Nullable LocalDate effectiveOn) {}

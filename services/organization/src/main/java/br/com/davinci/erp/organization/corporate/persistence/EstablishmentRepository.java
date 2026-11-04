@@ -146,6 +146,15 @@ public class EstablishmentRepository {
                 .list();
     }
 
+    /** Unidades organizacionais não encerradas localizadas no estabelecimento (impedem o encerramento dele). */
+    public boolean hasOpenUnits(UUID establishmentId) {
+        return jdbc.sql(
+                        "SELECT EXISTS (SELECT 1 FROM organizational_unit WHERE establishment_id = ? AND status <> 'CLOSED')")
+                .param(establishmentId)
+                .query(Boolean.class)
+                .single();
+    }
+
     public Map<UUID, List<TaxIdentifierRecord>> taxIdentifiers(Collection<UUID> ids) {
         return taxes.load(ids);
     }

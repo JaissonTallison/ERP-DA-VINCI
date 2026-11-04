@@ -8,7 +8,10 @@ public enum Permission {
     LEGAL_ENTITY_MANAGE(false),
     LEGAL_ENTITY_LIFECYCLE(false),
     ESTABLISHMENT_READ(true),
-    ESTABLISHMENT_MANAGE(false);
+    ESTABLISHMENT_MANAGE(false),
+    UNIT_READ(true),
+    UNIT_MANAGE(false),
+    STRUCTURE_MOVE(false);
 
     private final boolean readOnly;
 

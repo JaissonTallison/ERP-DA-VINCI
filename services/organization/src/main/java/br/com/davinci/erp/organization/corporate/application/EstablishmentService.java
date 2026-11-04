@@ -203,7 +203,13 @@ public class EstablishmentService {
             case REACTIVATE ->
                 current.reactivate(
                         entityService.lockedView(current.legalEntityId()).entity(), now);
-            case CLOSE -> current.close(on, now);
+            case CLOSE -> {
+                if (establishments.hasOpenUnits(id)) {
+                    throw new ConflictException(
+                            "has-active-dependents", "Há unidades organizacionais ativas neste estabelecimento");
+                }
+                yield current.close(on, now);
+            }
         };
         if (changed == current) {
             return before;

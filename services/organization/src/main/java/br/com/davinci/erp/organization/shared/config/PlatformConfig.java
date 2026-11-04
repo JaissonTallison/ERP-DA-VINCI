@@ -46,6 +46,11 @@ class PlatformConfig {
     }
 
     @Bean
+    NewTopic unitTopic(OutboxProperties outbox) {
+        return topic(EventPublisher.topic("unit"), outbox);
+    }
+
+    @Bean
     NewTopic tenantDeadLetterTopic(OutboxProperties outbox) {
         return topic(DEAD_LETTER_TOPIC, outbox);
     }

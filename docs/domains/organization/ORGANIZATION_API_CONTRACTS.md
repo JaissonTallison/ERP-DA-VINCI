@@ -4,20 +4,20 @@
 
 ## 1. Convenções (válidas para todos os endpoints)
 
-| Tema                    | Regra                                                                                                                                 |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Base                    | `/v1`, JSON, nomes em inglês `camelCase`                                                                                              |
-| Tenant                  | **Sempre do token** (claim `organization` → `tenant_id`). Nunca no caminho, no corpo ou em parâmetro                                  |
-| Recurso de outro tenant | **404**, nunca 403: não confirma a existência (proteção contra IDOR e enumeração)                                                     |
-| Criação                 | `POST` com `Idempotency-Key` obrigatório; repetição devolve o mesmo resultado; mesma chave com outro corpo dá 409                     |
-| Atualização             | `PATCH` (JSON Merge Patch) com `If-Match: "<version>"`; versão divergente dá 412                                                      |
-| Transições de status    | `POST /{id}/activate`, `/suspend`, `/reactivate`, `/close` com corpo `{ "effectiveOn": "AAAA-MM-DD", "reason": "..." }`; idempotentes |
-| Leitura temporal        | `asOf=AAAA-MM-DD`. Padrão: hoje no fuso da entidade (ou do grupo)                                                                     |
-| Paginação               | Cursor opaco (`cursor`, `limit` ≤ 200), ordenação estável por `code`                                                                  |
-| Erros                   | RFC 9457 com `code` estável (lista na seção 5)                                                                                        |
-| Correlação              | `X-Correlation-Id` propagado para logs, auditoria e eventos                                                                           |
-| Datas                   | Vigências em `date`; instantes em ISO 8601 UTC                                                                                        |
-| Idioma                  | `Accept-Language` escolhe o texto de `LocalizedText`; a resposta inclui todas as traduções em `nameTranslations`                      |
+| Tema                    | Regra                                                                                                                                                     |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Base                    | `/v1`, JSON, nomes em inglês `camelCase`                                                                                                                  |
+| Tenant                  | **Sempre do token** (claim `organization` → `tenant_id`). Nunca no caminho, no corpo ou em parâmetro                                                      |
+| Recurso de outro tenant | **404**, nunca 403: não confirma a existência (proteção contra IDOR e enumeração)                                                                         |
+| Criação                 | `POST` com `Idempotency-Key` obrigatório; repetição devolve o mesmo resultado; mesma chave com outro corpo dá 409                                         |
+| Atualização             | `PATCH` (JSON Merge Patch) com `If-Match: "<version>"`; versão divergente dá 412                                                                          |
+| Transições de status    | `POST /{id}/activate`, `/suspend`, `/reactivate`, `/close` com corpo `{ "effectiveOn": "AAAA-MM-DD", "reason": "..." }`; idempotentes                     |
+| Leitura temporal        | `asOf=AAAA-MM-DD`. Padrão: hoje no fuso da entidade (ou do grupo)                                                                                         |
+| Paginação               | Cursor opaco (`cursor`, `limit` ≤ 200), ordenação estável por `code`                                                                                      |
+| Erros                   | RFC 9457 com `code` estável (lista na seção 5)                                                                                                            |
+| Correlação              | `X-Correlation-Id` propagado para logs, auditoria e eventos                                                                                               |
+| Datas                   | Vigências em `date`; instantes em ISO 8601 UTC                                                                                                            |
+| Idioma                  | Planejado: `Accept-Language` escolhe o texto de `LocalizedText`. Hoje a resposta traz o texto padrão em `name` e todas as traduções em `nameTranslations` |
 
 ## 2. Recursos
 

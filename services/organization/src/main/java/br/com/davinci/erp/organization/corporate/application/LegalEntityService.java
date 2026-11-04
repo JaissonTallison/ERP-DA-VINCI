@@ -233,9 +233,10 @@ public class LegalEntityService {
             case SUSPEND -> current.suspend(now);
             case REACTIVATE -> current.reactivate(now);
             case CLOSE -> {
-                if (entities.hasOpenEstablishments(id)) {
+                if (entities.hasOpenDependents(id)) {
                     throw new ConflictException(
-                            "has-active-dependents", "Encerre os estabelecimentos da entidade antes de encerrá-la");
+                            "has-active-dependents",
+                            "Encerre os estabelecimentos e as unidades organizacionais da entidade antes de encerrá-la");
                 }
                 yield current.close(on, now);
             }

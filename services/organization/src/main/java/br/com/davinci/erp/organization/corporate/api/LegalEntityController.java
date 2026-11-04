@@ -5,7 +5,6 @@ import br.com.davinci.erp.organization.corporate.api.Representations.CreateLegal
 import br.com.davinci.erp.organization.corporate.api.Representations.GroupAssignmentRequest;
 import br.com.davinci.erp.organization.corporate.api.Representations.LegalEntityPage;
 import br.com.davinci.erp.organization.corporate.api.Representations.LegalEntityResponse;
-import br.com.davinci.erp.organization.corporate.api.Representations.LifecycleRequest;
 import br.com.davinci.erp.organization.corporate.api.Representations.TaxIdentifierRequest;
 import br.com.davinci.erp.organization.corporate.application.Commands;
 import br.com.davinci.erp.organization.corporate.application.LegalEntityService;
@@ -14,6 +13,7 @@ import br.com.davinci.erp.organization.corporate.domain.LegalEntityStatus;
 import br.com.davinci.erp.organization.corporate.persistence.LegalEntityRepository;
 import br.com.davinci.erp.organization.shared.domain.InvalidValueException;
 import br.com.davinci.erp.organization.shared.web.Cursor;
+import br.com.davinci.erp.organization.shared.web.LifecycleBody;
 import br.com.davinci.erp.organization.shared.web.Versions;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -156,7 +156,7 @@ class LegalEntityController {
     ResponseEntity<LegalEntityResponse> transition(
             @PathVariable UUID id,
             @PathVariable String transition,
-            @Valid @RequestBody(required = false) @Nullable LifecycleRequest body) {
+            @Valid @RequestBody(required = false) @Nullable LifecycleBody body) {
         return respond(service.transition(
                 id,
                 LegalEntityService.Transition.valueOf(transition.toUpperCase(Locale.ROOT)),
@@ -179,7 +179,7 @@ class LegalEntityController {
     ResponseEntity<LegalEntityResponse> endTaxIdentifier(
             @PathVariable UUID id,
             @PathVariable UUID taxIdentifierId,
-            @Valid @RequestBody(required = false) @Nullable LifecycleRequest body) {
+            @Valid @RequestBody(required = false) @Nullable LifecycleBody body) {
         return respond(service.endTaxIdentifier(id, taxIdentifierId, body == null ? null : body.effectiveOn()));
     }
 

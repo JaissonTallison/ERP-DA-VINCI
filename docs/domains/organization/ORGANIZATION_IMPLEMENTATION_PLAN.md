@@ -42,7 +42,9 @@ Cadastro e ciclo de vida, matriz única, coerência do identificador fiscal com 
 
 **Tamanho:** S.
 
-## Etapa 4 — Unidades, tipos e estruturas com vigência
+## Etapa 4 — Unidades, tipos e estruturas com vigência ✔ concluída (2026-11-03)
+
+> Entregue: 81 testes no serviço (12 novos), incluindo propriedade com 4 000 movimentos aleatórios e subárvore de 20 mil unidades em 132 ms. Decisões de detalhe: a medição de desempenho é feita no caminho do servidor (controlador, consulta e serialização), porque o MockMvc acumula os 5 MB da resposta num buffer que só existe no simulador, e roda sob demanda (`./gradlew :organization:performanceTest`) com a máquina livre; mover ou retirar uma unidade gera nova versão da unidade (o evento `unit.moved` carrega a posição); sem data, consultas e movimentos usam hoje em UTC (a unidade não tem fuso próprio); `Accept-Language` ainda não escolhe o texto: a resposta traz o nome padrão e todas as traduções; aninhamento sem regras cadastradas aceita qualquer pai.
 
 Catálogo de tipos e aninhamento, unidades com nome multilíngue, estruturas, vínculos com vigência, movimento simples, consultas `roots`, `children`, `subtree` e `ancestors` com `asOf`.
 
